@@ -89,7 +89,7 @@ nnoremap <Leader>r :set norelativenumber!<CR>
 " ctags
 " git support
 " Debugging support (if not on vim 8)
-" Use fuzzy file finder with zsh completion
+" Use fzf
 " Use ripgrep or silver searcher
 " Async linting
 " Smarter async autocomplete

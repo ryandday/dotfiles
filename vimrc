@@ -60,6 +60,7 @@ let mapleader = "\<Space>"
 " Prevent leader key from inserting a space 
 nnoremap <SPACE> <Nop> 
 nnoremap <Leader>s :w<CR>
+nnoremap <Leader>q :q<CR>
 nnoremap <Leader>e :E<CR>
 " Navigate vim windows
 nnoremap <Leader>j <C-w>j 
@@ -71,7 +72,7 @@ nnoremap <Leader>z :source ~/.vimrc<CR>
 
 " Search recursively in working directory for current word under cursor
 command VIMGREP :execute 'vimgrep '.expand('<cword>').' **/*' | :copen
-nnoremap <Leader>k :VIMGREP<ENTER>
+nnoremap <Leader>k :VIMGREP<CR>
 
 " Set up nice recursive search
 nnoremap <Leader>f :vimgrep  **/* <Left><Left><Left><Left><Left><Left>

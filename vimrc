@@ -17,7 +17,7 @@ if system('uname -s') == "Darwin\n"
   nnoremap <Leader>y :let @+=expand("%:p")<CR>
 else
   set clipboard=unnamedplus "Linux
-  nnoremap <Leader>y :let @+ = expand("%")<CR>
+  nnoremap <Leader>y :let @+=expand("%")<CR>
 endif
 
 set number
@@ -29,6 +29,8 @@ set wildmenu
 set incsearch " when searching, put cursor on next occurrence
 set ignorecase " Ignore case when searching...
 set smartcase " ...unless we type a capital
+set wildignore+=**/*.pyc*/**
+set wildignore+=**/*pycache*/**
 
 set undofile
 set backup
@@ -48,8 +50,6 @@ set lazyredraw
 let g:netrw_banner=0
 " let g:netrw_liststyle=3 " tree view
 let g:netrw_bufsettings = 'noma nomod nu nobl nowrap ro' " Set line numbers in netrw
-set wildignore+=**/*.pyc*/**
-set wildignore+=**/*pycache*/**
 
 " Disable modelines, bc its a possible security risk
 set modelines=0
@@ -59,9 +59,12 @@ set nomodeline
 let mapleader = "\<Space>"
 " Prevent leader key from inserting a space 
 nnoremap <SPACE> <Nop> 
+" Save and quit
 nnoremap <Leader>s :w<CR>
 nnoremap <Leader>q :q<CR>
+" Netrw
 nnoremap <Leader>e :E<CR>
+nnoremap <Leader>E :E .<CR>
 " Navigate vim windows
 nnoremap <Leader>j <C-w>j 
 nnoremap <Leader>k <C-w>k 
@@ -70,9 +73,9 @@ nnoremap <Leader>h <C-w>h
 
 nnoremap <Leader>z :source ~/.vimrc<CR> 
 
-" Search recursively in working directory for current word under cursor
+" Search recursively in working directory for current word under cursor and open quickfix
 command VIMGREP :execute 'vimgrep '.expand('<cword>').' **/*' | :copen
-nnoremap <Leader>k :VIMGREP<CR>
+nnoremap <Leader>g :VIMGREP<CR>
 
 " Set up nice recursive search
 nnoremap <Leader>f :vimgrep  **/* <Left><Left><Left><Left><Left><Left>
@@ -81,20 +84,22 @@ nnoremap <Leader>c :copen<CR>
 nnoremap <Leader>b :b 
 nnoremap <Leader>n :bn<CR>
 nnoremap <Leader>p :bp<CR>
-nnoremap <Leader>d :bd<CR>
+" Delete buffer, but preserve panes
+nnoremap <Leader>d :bp \| bd #<cr>
 
 " Toggle relative line numbering
 nnoremap <Leader>r :set norelativenumber!<CR>
 "
-" plugins to add:
-" ctags
+" plugins/things to add:
+" gutentags or tag generating git hooks
+" tagbar
 " git support
 " Debugging support (if not on vim 8)
-" Use fzf
-" Use ripgrep or silver searcher
+" fzf
+" ripgrep or silver searcher
 " Async linting
 " Smarter async autocomplete
 " NerdCommenter
 "
 " Mappings to add:
-" Go to definition, go to references, and debugging remaps
+" Debugging remaps

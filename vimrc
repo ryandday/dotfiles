@@ -36,7 +36,7 @@ set wildignore+=**/*.pyc*/**
 set wildignore+=**/*pycache*/**
 
 " search recursively in working directory for current word under cursor and open quickfix
-command VIMGREP :execute 'vimgrep '.expand('<cword>').' **/*' | :copen
+command! VIMGREP :execute 'vimgrep '.expand('<cword>').' **/*' | :copen
 nnoremap <Leader>g :VIMGREP<CR>
 
 " set up nice recursive search
@@ -58,6 +58,7 @@ set lazyredraw
 let g:netrw_banner=0
 " let g:netrw_liststyle=3 " tree view
 let g:netrw_bufsettings = 'noma nomod nu nobl nowrap ro' " Set line numbers in netrw
+nnoremap - :E<CR>
 nnoremap <Leader>e :E<CR>
 nnoremap <Leader>E :E .<CR>
 
@@ -86,7 +87,7 @@ nnoremap <Leader>z :source ~/.vimrc<CR>
 nnoremap <Leader>b :b 
 nnoremap <Leader>n :bn<CR>
 nnoremap <Leader>p :bp<CR>
-nnoremap <Leader>d :bp
+nnoremap <Leader>d :bd
 
 " Toggle relative line numbering
 nnoremap <Leader>r :set norelativenumber!<CR>

@@ -6,12 +6,12 @@ set number
 set relativenumber
 
 set tabstop=4 " number of visual spaces per TAB
-set shiftwidth=4 "using '>' uses 4 spaces
-set expandtab "insert 4 spaces on tab
+set shiftwidth=4 "spaces used for '>'
+set expandtab "insert spaces on tab
 set list
 set listchars=tab:>~ " Show tab characters as symbols
 set cursorline
-set showmatch " highlights matching braces
+" set showmatch " highlights matching braces
 set encoding=utf-8
 
 " use system clipboard as default copy buffer

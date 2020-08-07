@@ -13,7 +13,7 @@ set expandtab "insert spaces on tab
 set list
 set listchars=tab:>~ " Show tab characters as symbols
 set cursorline
-set showmatch " highlights matching braces
+" set showmatch " highlights matching braces
 set encoding=utf-8
 
 " use system clipboard as default copy buffer
@@ -62,6 +62,7 @@ set lazyredraw
 let g:netrw_banner=0
 " let g:netrw_liststyle=3 " tree view
 let g:netrw_bufsettings = 'noma nomod nu nobl nowrap ro' " Set line numbers in netrw
+nnoremap - :E<CR>
 nnoremap <Leader>e :E<CR>
 nnoremap - :E<CR>
 nnoremap <Leader>E :E .<CR>
@@ -91,7 +92,7 @@ nnoremap <Leader>z :source ~/.vimrc<CR>
 nnoremap <Leader>b :b 
 nnoremap <Leader>n :bn<CR>
 nnoremap <Leader>p :bp<CR>
-nnoremap <Leader>d :bp
+nnoremap <Leader>d :bd
 
 " Toggle relative line numbering
 nnoremap <Leader>r :set norelativenumber!<CR>

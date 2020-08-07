@@ -4,6 +4,7 @@ set nocompatible
 inoremap jk <ESC>
 set number
 set relativenumber
+colorscheme desert
 
 set tabstop=4 " number of visual spaces per TAB
 set shiftwidth=4 "spaces used for '>'

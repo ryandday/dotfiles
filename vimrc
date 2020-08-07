@@ -4,10 +4,12 @@ set nocompatible
 inoremap jk <ESC>
 set number
 set relativenumber
+colorscheme desert
+set laststatus=2
 
 set tabstop=4 " number of visual spaces per TAB
-set shiftwidth=4 "using '>' uses 4 spaces
-set expandtab "insert 4 spaces on tab
+set shiftwidth=4 " '>' uses spaces
+set expandtab "insert spaces on tab
 set list
 set listchars=tab:>~ " Show tab characters as symbols
 set cursorline
@@ -36,12 +38,14 @@ set wildignore+=**/*.pyc*/**
 set wildignore+=**/*pycache*/**
 
 " search recursively in working directory for current word under cursor and open quickfix
-command VIMGREP :execute 'vimgrep '.expand('<cword>').' **/*' | :copen
+command! VIMGREP :execute 'vimgrep '.expand('<cword>').' **/*' | :copen
 nnoremap <Leader>g :VIMGREP<CR>
 
-" set up nice recursive search
+" set up recursive search command
 nnoremap <Leader>f :vimgrep  **/* <Left><Left><Left><Left><Left><Left>
-nnoremap <Leader>c :copen<CR>
+nnoremap <Leader>co :copen<CR>
+nnoremap <Leader>cn :cn<CR>
+nnoremap <Leader>cp :cp<CR>
 
 " backups
 set undofile
@@ -59,6 +63,7 @@ let g:netrw_banner=0
 " let g:netrw_liststyle=3 " tree view
 let g:netrw_bufsettings = 'noma nomod nu nobl nowrap ro' " Set line numbers in netrw
 nnoremap <Leader>e :E<CR>
+nnoremap - :E<CR>
 nnoremap <Leader>E :E .<CR>
 
 " disable modelines, bc its a possible security risk
@@ -94,9 +99,9 @@ nnoremap <Leader>r :set norelativenumber!<CR>
 " plugins/things to add:
 " gutentags or tag generating git hooks
 " tagbar
-" git support
-" Debugging support (if not on vim 8)
+" git support - gitgutter
+" Debugging mappings 
 " fzf
 " ripgrep or silver searcher
 " Async linting
-" Smarter async autocomplete
+" Smart async autocomplete

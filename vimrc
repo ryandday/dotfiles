@@ -50,10 +50,11 @@ nnoremap <Leader>cp :cp<CR>
 " backups
 set undofile
 set backup
-" set cached vim stuff in its own directory
+" set cached stuff in its own directory
 set undodir=~/.vim/.undo//
 set backupdir=~/.vim/.backup//
 set directory=~/.vim/.swp//
+set tags=~/.tags
 
 set hidden " enable changing buffers without saving
 set lazyredraw
@@ -62,7 +63,8 @@ set lazyredraw
 let g:netrw_banner=0
 " let g:netrw_liststyle=3 " tree view
 let g:netrw_bufsettings = 'noma nomod nu nobl nowrap ro' " Set line numbers in netrw
-nnoremap - :E<CR>
+let g:netrw_fastbrowse=0 " turn off persistent hidden buffer behavior
+let g:netrw_list_hide = '\(^\|\s\s\)\zs\.\S\+' " default hide dotfiles
 nnoremap <Leader>e :E<CR>
 nnoremap - :E<CR>
 nnoremap <Leader>E :E .<CR>
@@ -89,7 +91,7 @@ set splitright
 nnoremap <Leader>z :source ~/.vimrc<CR> 
 
 " Buffer commands
-nnoremap <Leader>b :b 
+nnoremap <Leader>b :ls<CR>:b<SPACE> 
 nnoremap <Leader>n :bn<CR>
 nnoremap <Leader>p :bp<CR>
 nnoremap <Leader>d :bd

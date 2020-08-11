@@ -100,11 +100,12 @@ nnoremap <Leader>d :bd
 nnoremap <Leader>r :set norelativenumber!<CR>
 "
 " plugins/things to add:
-" gutentags or tag generating git hooks
-" tagbar
+" vim-plug
+" gutentags or tag generating git hooks - tagbar
+" code navigation plugin
 " git support - gitgutter
 " Debugging mappings 
 " fzf
 " ripgrep or silver searcher
-" Async linting
+" Async linting - ALE
 " Smart async autocomplete

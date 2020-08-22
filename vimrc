@@ -5,31 +5,33 @@ inoremap jk <ESC>
 set laststatus=2
 set hidden " enable changing buffers without saving
 set lazyredraw
+set encoding=utf-8
+" Disable modelines, bc its a possible security risk
+set modelines=0
+set nomodeline
+set cursorline
+set linebreak
 
 let mapleader = " "
 " Prevent leader key from inserting a space 
 nnoremap <SPACE> <Nop> 
-set number
-set relativenumber
-" Toggle relative line numbering
-nnoremap <Leader>rr :set norelativenumber!<CR>
+
 set tabstop=2 " number of visual spaces per TAB
 set shiftwidth=2 " '>' uses spaces
 set expandtab "insert spaces on tab
 set list
 set listchars=tab:>~ " Show tab characters as symbols
-set cursorline
-" set showmatch " highlights matching braces
-set encoding=utf-8
-" Disable modelines, bc its a possible security risk
-set modelines=0
-set nomodeline
+
+set number
+set relativenumber
+" Toggle relative line numbering
+nnoremap <Leader>rr :set norelativenumber!<CR>
 
 nnoremap <Leader>s :w<CR>
 nnoremap <Leader>q :q<CR>
 nnoremap <Leader>z :source ~/.vimrc<CR> 
  
-" backups
+"--- Backups ---
 set undofile
 set backup
 set noswapfile
@@ -84,14 +86,15 @@ nnoremap <Leader>co :copen<CR>
 nnoremap <Leader>cn :cn<CR>
 nnoremap <Leader>cp :cp<CR>
 
-" rename in current buffers
-nnoremap <leader>rn :execute 'bufdo %s/'.expand('<cword>').'//gec<Left><Left><Left><Left><Left>
+" rename in current file 
+nnoremap <leader>rl :execute '%s/'.expand('<cword>').'//gc'<Left><Left><Left><Left>
+" rename in open buffers
+nnoremap <leader>rn :execute 'bufdo %s/'.expand('<cword>').'//gec'<Left><Left><Left><Left><Left>
 
 "---Netrw settings---
 let g:netrw_banner=0
-" let g:netrw_liststyle=3 " tree view
 let g:netrw_bufsettings = 'noma nomod nu nobl nowrap ro' " Set line numbers in netrw
-let g:netrw_list_hide = '\(^\|\s\s\)\zs\.\S\+' " hide dotfiles in netrw
+let g:netrw_list_hide = '\(^\|\s\s\)\zs\.\S\+' " hide dotfiles in netrw - turn back on with gh
 let g:netrw_fastbrowse=0 " turn off persistent hidden buffer behavior
 nnoremap - :E<CR>
 nnoremap <Leader>E :E .<CR>
@@ -108,13 +111,13 @@ colorscheme gruvbox
 set bg=dark
 set updatetime=300
 
-" GoTo code navigation.
+"---Coc.nvim settings---
+" code navigation.
 nmap <silent> gd <Plug>(coc-definition)
 nmap <silent> gy <Plug>(coc-type-definition)
 nmap <silent> gi <Plug>(coc-implementation)
 nmap <silent> gr <Plug>(coc-references)
 
-" nmap <leader>rn <Plug>(coc-rename)
 "don't give |ins-completion-menu| messages.
 set shortmess+=c
 set signcolumn=yes " always show signcolumns
@@ -130,21 +133,22 @@ function! s:check_back_space() abort
   return !col || getline('.')[col - 1]  =~# '\s'
 endfunction
 
-
 "------No-Plugin git utils------
+" For when I don't have access to plugins
+
 " Print line numbers changed in current file from last commit 
 command! GDN call s:show_line_nums_git_diff()
-" highlight lines changed in current file from last commit
+" Add sign in sign column for lines changed in current file from last commit
 command! GDH call s:highlight_changed()
 " quickfix with all git files changed
 command! -nargs=1 Gdiff call s:get_diff_files(<q-args>)
-command! CM call clearmatches()
+command! CM execute "sign unplace * files=".expand('%:p')
 
 nnoremap <leader>gh :GDH<CR>
 nnoremap <leader>gc :CM<CR>
 nnoremap <leader>gn :GDN<CR>
 
-" vimdiff
+" vimdiff - swapfiles off helps
 command! Dtool :execute '!git difftool '.expand(@%)
 nnoremap <leader>gd :Dtool<CR>
 nnoremap <leader>gs :w!<CR>
@@ -156,12 +160,12 @@ function! s:show_line_nums_git_diff()
 endfunction
 
 function! s:highlight_changed()
-    call clearmatches()
+    execute "sign unplace * file=".expand(%:p')
+    sign define GitChanged text=! texthl=Search
     let l:command = substitute("git blame -p filename | grep '0000' | awk '{print $3}'", "filename", expand(@%), "")
     let line_nums = split(system(l:command), '\n')
-    highlight GitChanged ctermbg=yellow guibg=yellow
     for numba in line_nums
-        let m = matchaddpos("GitChanged", [[numba]])
+      execute ":sign place 2 line=".numba." name=GitChanged file=".expand('%:p')
     endfor
 endfunction
 

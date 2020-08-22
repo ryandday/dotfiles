@@ -9,7 +9,6 @@ set lazyredraw
 let mapleader = " "
 " Prevent leader key from inserting a space 
 nnoremap <SPACE> <Nop> 
-
 set number
 set relativenumber
 " Toggle relative line numbering

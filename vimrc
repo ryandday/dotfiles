@@ -6,11 +6,11 @@ set laststatus=2
 set hidden " enable changing buffers without saving
 set lazyredraw
 set encoding=utf-8
+set cursorline
+set linebreak
 " Disable modelines, bc its a possible security risk
 set modelines=0
 set nomodeline
-set cursorline
-set linebreak
 
 let mapleader = " "
 " Prevent leader key from inserting a space 
@@ -73,7 +73,7 @@ set splitright
 nnoremap <Leader>b :ls<CR>:b<SPACE>
 nnoremap <Leader>n :bn<CR>
 nnoremap <Leader>p :bp<CR>
-nnoremap <Leader>d :bd
+nnoremap <Leader>d :bd<CR>
 
 " search working directory
 nnoremap <Leader>ff :vimgrep  **/* <Left><Left><Left><Left><Left><Left>

@@ -120,40 +120,6 @@ let g:netrw_fastbrowse=0 " turn off persistent hidden buffer behavior
 nnoremap - :E<CR>
 nnoremap <Leader>E :E .<CR>
 
-"---Plugins---
-call plug#begin('~/.vim/plugged')
-    Plug 'mhinz/vim-signify'
-    Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
-    Plug 'junegunn/fzf.vim'
-    Plug 'morhetz/gruvbox'
-    Plug 'neoclide/coc.nvim', {'branch': 'release'}
-call plug#end()
-colorscheme gruvbox
-set bg=dark
-set updatetime=300
-
-"---Coc.nvim settings---
-" code navigation.
-nmap <silent> gd <Plug>(coc-definition)
-nmap <silent> gy <Plug>(coc-type-definition)
-nmap <silent> gi <Plug>(coc-implementation)
-nmap <silent> gr <Plug>(coc-references)
-
-"don't give |ins-completion-menu| messages.
-set shortmess+=c
-set signcolumn=yes " always show signcolumns
-
-" Use tab for trigger completion with characters ahead and navigate.
-inoremap <silent><expr> <TAB>
-      \ pumvisible() ? "\<C-n>" :
-      \ <SID>check_back_space() ? "\<TAB>" :
-      \ coc#refresh()
-inoremap <expr><S-TAB> pumvisible() ? "\<C-p>" : "\<C-h>"
-function! s:check_back_space() abort
-  let col = col('.') - 1
-  return !col || getline('.')[col - 1]  =~# '\s'
-endfunction
-
 "------No-Plugin git utils------
 " For when I don't have access to plugins
 
@@ -223,3 +189,36 @@ function! s:get_diff_files(rev)
   copen
 endfunction
 
+"---Plugins---
+call plug#begin('~/.vim/plugged')
+    Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
+    Plug 'junegunn/fzf.vim'
+    Plug 'morhetz/gruvbox'
+    Plug 'neoclide/coc.nvim', {'branch': 'release'}
+    Plug 'mhinz/vim-signify'
+call plug#end()
+colorscheme gruvbox
+set bg=dark
+set updatetime=300
+
+"---Coc.nvim settings---
+" code navigation.
+nmap <silent> gd <Plug>(coc-definition)
+nmap <silent> gy <Plug>(coc-type-definition)
+nmap <silent> gi <Plug>(coc-implementation)
+nmap <silent> gr <Plug>(coc-references)
+
+"don't give |ins-completion-menu| messages.
+set shortmess+=c
+set signcolumn=yes " always show signcolumns
+
+" Use tab for trigger completion with characters ahead and navigate.
+inoremap <silent><expr> <TAB>
+      \ pumvisible() ? "\<C-n>" :
+      \ <SID>check_back_space() ? "\<TAB>" :
+      \ coc#refresh()
+inoremap <expr><S-TAB> pumvisible() ? "\<C-p>" : "\<C-h>"
+function! s:check_back_space() abort
+  let col = col('.') - 1
+  return !col || getline('.')[col - 1]  =~# '\s'
+endfunction

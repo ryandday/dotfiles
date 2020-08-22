@@ -91,6 +91,27 @@ nnoremap <leader>rl :execute '%s/'.expand('<cword>').'//gc'<Left><Left><Left><Le
 " rename in open buffers
 nnoremap <leader>rn :execute 'bufdo %s/'.expand('<cword>').'//gec'<Left><Left><Left><Left><Left>
 
+" Open files in quicklist for bufdo commands
+nnoremap <leader> oa :OpenAll<CR>
+command! OpenAll call s:QuickFixOpenAll()
+function! s:QuickFixOpenAll()
+    if empty(getqflist())
+        return
+    endif
+    let s:prev_value = ""
+    for d in getqflist()
+        let s:curr_val = bufname(d.bufnr)
+        if (s:curr_val != s:prev_val)
+            exec "edit " . s:curr_val
+        endif
+        let s:prev_val = s:curr_val
+    endfor
+endfunction
+
+" switch between header and cpp files
+nnoremap <Leader>tp :e %:r.cpp<CR>
+nnoremap <Leader>th :e %:r.h<CR>
+
 "---Netrw settings---
 let g:netrw_banner=0
 let g:netrw_bufsettings = 'noma nomod nu nobl nowrap ro' " Set line numbers in netrw
@@ -121,13 +142,13 @@ nmap <silent> gr <Plug>(coc-references)
 "don't give |ins-completion-menu| messages.
 set shortmess+=c
 set signcolumn=yes " always show signcolumns
+
 " Use tab for trigger completion with characters ahead and navigate.
 inoremap <silent><expr> <TAB>
       \ pumvisible() ? "\<C-n>" :
       \ <SID>check_back_space() ? "\<TAB>" :
       \ coc#refresh()
 inoremap <expr><S-TAB> pumvisible() ? "\<C-p>" : "\<C-h>"
-
 function! s:check_back_space() abort
   let col = col('.') - 1
   return !col || getline('.')[col - 1]  =~# '\s'
@@ -160,7 +181,7 @@ function! s:show_line_nums_git_diff()
 endfunction
 
 function! s:highlight_changed()
-    execute "sign unplace * file=".expand(%:p')
+    execute "sign unplace * file=".expand('%:p')
     sign define GitChanged text=! texthl=Search
     let l:command = substitute("git blame -p filename | grep '0000' | awk '{print $3}'", "filename", expand(@%), "")
     let line_nums = split(system(l:command), '\n')
@@ -202,19 +223,3 @@ function! s:get_diff_files(rev)
   copen
 endfunction
 
-" Open files in quicklist for bufdo commands
-nnoremap <leader> oa :OpenAll<CR>
-command! OpenAll call s:QuickFixOpenAll()
-function! s:QuickFixOpenAll()
-    if empty(getqflist())
-        return
-    endif
-    let s:prev_value = ""
-    for d in getqflist()
-        let s:curr_val = bufname(d.bufnr)
-        if (s:curr_val != s:prev_val)
-            exec "edit " . s:curr_val
-        endif
-        let s:prev_val = s:curr_val
-    endfor
-endfunction

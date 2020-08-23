@@ -27,8 +27,6 @@ set relativenumber
 " Toggle relative line numbering
 nnoremap <Leader>rr :set norelativenumber!<CR>
 
-nnoremap <Leader>s :w<CR>
-nnoremap <Leader>q :q<CR>
 nnoremap <Leader>z :source ~/.vimrc<CR> 
  
 "--- Backups ---
@@ -44,7 +42,9 @@ set directory=~/.vim/.swp//
 " use system clipboard as default copy buffer
 set clipboard^=unnamed,unnamedplus
 " yank relative path
-nnoremap <leader>yf :let @+=expand("%")<CR>
+nnoremap <leader>yff :let @+=expand("%")<CR>
+" yank relative path into r buffer
+nnoremap <leader>yfr :let @r=expand("%")<CR>
 " yank absolute path
 nnoremap <leader>ya :let @+=expand("%:p")<CR>
 " yank filename
@@ -108,22 +108,24 @@ function! s:QuickFixOpenAll()
     endfor
 endfunction
 
+"--- Language Specific --- 
 " switch between header and cpp files
 nnoremap <Leader>tp :e %:r.cpp<CR>
 nnoremap <Leader>th :e %:r.h<CR>
 
-" run current python file 
+" run python file in register as module 
 nnoremap <Leader>rp :RunPy<CR>
-command! RunPy call s:RunPythonModule()
-function! s:RunPythonModule()
-  let filename = fnamemodify(expand("%"), ":~:.")
+command! RunPy call RunPythonModule()
+function! RunPythonModule()
+  "let filename = fnamemodify(expand("%"), ":~:." "run current file
+  let filename = @r "run filename in r buffer
   let l:modulefilenamecommand = "echo ".filename." | sed -e 's/\\\//./g' -e 's/.py//g'"
   let l:modulefilename = system(l:modulefilenamecommand)
-  let l:command = "python -m ".l:modulefilename
-  call system(l:command)
+  let l:command = "python3 -m ".l:modulefilename
+  echo system(l:command)
 endfunction
 
-"---Netrw settings---
+"--- Netrw Settings ---
 let g:netrw_banner=0
 let g:netrw_bufsettings = 'noma nomod nu nobl nowrap ro' " Set line numbers in netrw
 let g:netrw_list_hide = '\(^\|\s\s\)\zs\.\S\+' " hide dotfiles in netrw - turn back on with gh
@@ -131,7 +133,7 @@ let g:netrw_fastbrowse=0 " turn off persistent hidden buffer behavior
 nnoremap - :E<CR>
 nnoremap <Leader>E :E .<CR>
 
-"------No-Plugin git utils------
+" --- No-Plugin Git Utils ---
 " For when I don't have access to plugins
 
 " Print line numbers changed in current file from last commit 
@@ -200,7 +202,7 @@ function! s:get_diff_files(rev)
   copen
 endfunction
 
-"---Plugins---
+"--- Plugins ---
 call plug#begin('~/.vim/plugged')
     Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
     Plug 'junegunn/fzf.vim'
@@ -212,7 +214,7 @@ colorscheme gruvbox
 set bg=dark
 set updatetime=300
 
-"---Coc.nvim settings---
+"--- Coc.nvim settings ---
 " code navigation.
 nmap <silent> gd <Plug>(coc-definition)
 nmap <silent> gy <Plug>(coc-type-definition)

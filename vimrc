@@ -112,6 +112,17 @@ endfunction
 nnoremap <Leader>tp :e %:r.cpp<CR>
 nnoremap <Leader>th :e %:r.h<CR>
 
+" run current python file 
+nnoremap <Leader>rp :RunPy<CR>
+command! RunPy call s:RunPythonModule()
+function! s:RunPythonModule()
+  let filename = fnamemodify(expand("%"), ":~:.")
+  let l:modulefilenamecommand = "echo ".filename." | sed -e 's/\\\//./g' -e 's/.py//g'"
+  let l:modulefilename = system(l:modulefilenamecommand)
+  let l:command = "python -m ".l:modulefilename
+  call system(l:command)
+endfunction
+
 "---Netrw settings---
 let g:netrw_banner=0
 let g:netrw_bufsettings = 'noma nomod nu nobl nowrap ro' " Set line numbers in netrw

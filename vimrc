@@ -60,7 +60,6 @@ nnoremap <leader>yh :let @+=expand("%:p:h")<CR>
 "--- Search and Navigation ---
 set path+=** " adds all files in cwd for find
 set wildmenu
-set wildmode=longest:full
 set incsearch " when searching, put cursor on next occurrence
 set ignorecase " ignore case when searching
 set wildignorecase 

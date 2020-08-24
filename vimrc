@@ -8,9 +8,13 @@ set lazyredraw
 set encoding=utf-8
 set cursorline
 set linebreak
+set undolevels=1000
 " Disable modelines, bc its a possible security risk
 set modelines=0
 set nomodeline
+" no plugin colorscheme
+" set t_Co=256
+" colorscheme desert
 
 let mapleader = " "
 " Prevent leader key from inserting a space 
@@ -42,7 +46,8 @@ set directory=~/.vim/.swp//
 " use system clipboard as default copy buffer
 set clipboard^=unnamed,unnamedplus
 " yank relative path
-nnoremap <leader>yff :let @+=expand("%")<CR>
+"nnoremap <leader>yff :let @+=expand("%")<CR>
+nnoremap <leader>yff :let @+=fnamemodify(expand("%"), ":~:.")<CR>
 " yank relative path into r buffer
 nnoremap <leader>yfr :let @r=expand("%")<CR>
 " yank absolute path
@@ -55,6 +60,7 @@ nnoremap <leader>yh :let @+=expand("%:p:h")<CR>
 "--- Search and Navigation ---
 set path+=** " adds all files in cwd for find
 set wildmenu
+set wildmode=longest:full
 set incsearch " when searching, put cursor on next occurrence
 set ignorecase " ignore case when searching
 set wildignorecase 
@@ -130,7 +136,7 @@ let g:netrw_banner=0
 let g:netrw_bufsettings = 'noma nomod nu nobl nowrap ro' " Set line numbers in netrw
 let g:netrw_list_hide = '\(^\|\s\s\)\zs\.\S\+' " hide dotfiles in netrw - turn back on with gh
 let g:netrw_fastbrowse=0 " turn off persistent hidden buffer behavior
-nnoremap - :E<CR>
+nnoremap - :Re<CR>
 nnoremap <Leader>E :E .<CR>
 
 " --- No-Plugin Git Utils ---

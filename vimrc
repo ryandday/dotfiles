@@ -12,7 +12,7 @@ set undolevels=1000
 " Disable modelines, bc its a possible security risk
 set modelines=0
 set nomodeline
-" no plugin colorscheme
+" no gruvbox
 " set t_Co=256
 " colorscheme desert
 
@@ -48,8 +48,9 @@ set clipboard^=unnamed,unnamedplus
 " yank relative path
 "nnoremap <leader>yff :let @+=expand("%")<CR>
 nnoremap <leader>yff :let @+=fnamemodify(expand("%"), ":~:.")<CR>
-" yank relative path into r buffer
-nnoremap <leader>yfr :let @r=expand("%")<CR>
+" yank relative path into r buffer - used for running files
+"nnoremap <leader>yfr :let @r=expand("%")<CR>
+nnoremap <leader>yfr :let @r=fnamemodify(expand("%"), ":~:.")<CR>
 " yank absolute path
 nnoremap <leader>ya :let @+=expand("%:p")<CR>
 " yank filename
@@ -60,6 +61,7 @@ nnoremap <leader>yh :let @+=expand("%:p:h")<CR>
 "--- Search and Navigation ---
 set path+=** " adds all files in cwd for find
 set wildmenu
+set wildmode=longest,list
 set incsearch " when searching, put cursor on next occurrence
 set ignorecase " ignore case when searching
 set wildignorecase 
@@ -76,9 +78,9 @@ set splitright
 
 " Buffer commands
 nnoremap <Leader>b :ls<CR>:b<SPACE>
+nnoremap <Leader>d :bd<CR>
 nnoremap <Leader>n :bn<CR>
 nnoremap <Leader>p :bp<CR>
-nnoremap <Leader>d :bd<CR>
 
 " search working directory
 nnoremap <Leader>ff :vimgrep  **/* <Left><Left><Left><Left><Left><Left>
@@ -96,21 +98,21 @@ nnoremap <leader>rl :execute '%s/'.expand('<cword>').'//gc'<Left><Left><Left><Le
 " rename in open buffers
 nnoremap <leader>rn :execute 'bufdo %s/'.expand('<cword>').'//gec'<Left><Left><Left><Left><Left>
 
-" Open files in quicklist for bufdo commands
+" Open all files in quicklist 
 nnoremap <leader> oa :OpenAll<CR>
 command! OpenAll call s:QuickFixOpenAll()
 function! s:QuickFixOpenAll()
-    if empty(getqflist())
-        return
+  if empty(getqflist())
+      return
+  endif
+  let s:prev_value = ""
+  for d in getqflist()
+    let s:curr_val = bufname(d.bufnr)
+    if (s:curr_val != s:prev_val)
+        exec "edit " . s:curr_val
     endif
-    let s:prev_value = ""
-    for d in getqflist()
-        let s:curr_val = bufname(d.bufnr)
-        if (s:curr_val != s:prev_val)
-            exec "edit " . s:curr_val
-        endif
-        let s:prev_val = s:curr_val
-    endfor
+      let s:prev_val = s:curr_val
+  endfor
 endfunction
 
 "--- Language Specific --- 
@@ -122,7 +124,6 @@ nnoremap <Leader>th :e %:r.h<CR>
 nnoremap <Leader>rp :RunPy<CR>
 command! RunPy call RunPythonModule()
 function! RunPythonModule()
-  "let filename = fnamemodify(expand("%"), ":~:." "run current file
   let filename = @r "run filename in r buffer
   let l:modulefilenamecommand = "echo ".filename." | sed -e 's/\\\//./g' -e 's/.py//g'"
   let l:modulefilename = system(l:modulefilenamecommand)
@@ -139,39 +140,80 @@ nnoremap - :Re<CR>
 nnoremap <Leader>E :E .<CR>
 
 " --- No-Plugin Git Utils ---
-" For when I don't have access to plugins
 
-" Print line numbers changed in current file from last commit 
+" Print line numbers modified in current file from last commit 
 command! GDN call s:show_line_nums_git_diff()
-" Add sign in sign column for lines changed in current file from last commit
+" Add sign in sign column for lines modified in current file from last commit
 command! GDH call s:highlight_changed()
 " quickfix with all git files changed
 command! -nargs=1 Gdiff call s:get_diff_files(<q-args>)
-command! CM execute "sign unplace * files=".expand('%:p')
+command! CM execute "sign unplace *" 
+" jump to next modified line
+command! NextL call s:jump_next_changed_line()
+" jump to prev modified line
+command! PrevL call s:jump_prev_changed_line()
 
+nnoremap ]h :NextL<CR>
+nnoremap [h :PrevL<CR>
 nnoremap <leader>gh :GDH<CR>
 nnoremap <leader>gc :CM<CR>
 nnoremap <leader>gn :GDN<CR>
 
 " vimdiff - swapfiles off helps
-command! Dtool :execute '!git difftool '.expand(@%)
-nnoremap <leader>gd :Dtool<CR>
-nnoremap <leader>gs :w!<CR>
+command! Difftool :execute '!git difftool '.expand(@%)
+nnoremap <leader>gd :Difftool<CR>
 nnoremap <leader>gq :qa!<CR>
 
+" Separate functions for speed
+function! s:jump_next_changed_line()
+  let l:command = "git blame -p ".expand(@%)." | grep '0000000000000000000000000000000000000000' | awk '{print $3}'"
+  let line_nums = split(system(l:command), '\n')
+  let line_nums = reverse(line_nums)
+  if len(line_nums)==0
+    echo "No modified lines"
+    return
+  endif
+  let curr_line = line(".")
+  for line_num in line_nums
+    if line_num > curr_line
+      call cursor(line_num,0)
+      return
+    endif
+  endfor
+  echo "Reached beginning of modified lines"
+endfunction
+
+function! s:jump_prev_changed_line()
+  let l:command = "git blame -p ".expand(@%)." | grep '0000000000000000000000000000000000000000' | awk '{print $3}'"
+  let line_nums = split(system(l:command), '\n')
+  let line_nums = reverse(line_nums)
+  if len(line_nums)==0
+    echo "No modified lines"
+    return
+  endif
+  let curr_line = line(".")
+  for line_num in line_nums
+    if line_num < curr_line
+      call cursor(line_num,0)
+      return
+    endif
+  endfor
+  echo "Reached end of modified lines"
+endfunction
+
 function! s:show_line_nums_git_diff()
-    let l:command = substitute("git blame -p filename | grep '0000' | awk '{print $3}'", "filename", expand(@%), "")
-    echom(system(command))
+  let l:command = "git blame -p ".expand(@%)." | grep '0000000000000000000000000000000000000000' | awk '{print $3}'"
+  echom(system(command))
 endfunction
 
 function! s:highlight_changed()
-    execute "sign unplace * file=".expand('%:p')
-    sign define GitChanged text=! texthl=Search
-    let l:command = substitute("git blame -p filename | grep '0000' | awk '{print $3}'", "filename", expand(@%), "")
-    let line_nums = split(system(l:command), '\n')
-    for numba in line_nums
-      execute ":sign place 2 line=".numba." name=GitChanged file=".expand('%:p')
-    endfor
+  execute "sign unplace *" 
+  sign define GitChanged text=! texthl=Search
+  let l:command = "git blame -p ".expand(@%)." | grep '0000000000000000000000000000000000000000' | awk '{print $3}'"
+  let line_nums = split(system(l:command), '\n')
+  for numba in line_nums
+    execute ":sign place 2 line=".numba." name=GitChanged file=".expand('%:p')
+  endfor
 endfunction
 
 let s:git_status_dictionary = {
@@ -191,45 +233,67 @@ function! s:get_diff_files(rev)
   let command = 'git diff --name-status '.a:rev
   let lines = split(system(command), '\n')
   let items = []
-
   for line in lines
     let filename = matchstr(line, "\\S\\+$")
     let status = s:git_status_dictionary[matchstr(line, "^\\w")]
     let item = { "filename": filename, "text": status }
-
     call add(items, item)
   endfor
-
   let list = {'title': title, 'items': items}
-
   call setqflist([], 'r', list)
-
   copen
 endfunction
 
 "--- Plugins ---
 call plug#begin('~/.vim/plugged')
-    Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
-    Plug 'junegunn/fzf.vim'
-    Plug 'morhetz/gruvbox'
-    Plug 'neoclide/coc.nvim', {'branch': 'release'}
-    Plug 'mhinz/vim-signify'
+  Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
+  Plug 'junegunn/fzf.vim'
+  Plug 'morhetz/gruvbox'
+  Plug 'neoclide/coc.nvim', {'branch': 'release'}
+  Plug 'puremourning/vimspector'
 call plug#end()
+
+"--- Gruvbox ---
 colorscheme gruvbox
 set bg=dark
-set updatetime=300
 
-"--- Coc.nvim settings ---
-" code navigation.
+"--- Vimspector ---
+let g:vimspector_enable_mappings = 'HUMAN'
+" clear Vimspector's no name buffers
+nmap <leader>rq :VimspectorReset<CR>:WipeNoNameBuffers<CR>
+
+command! WipeNoNameBuffers call s:delete_no_name_buffers() 
+function! s:delete_no_name_buffers()
+  let bufinfos = getbufinfo()
+  for bufinfo in bufinfos
+    if bufinfo['name'] == ""
+      execute "bw ".bufinfo['bufnr']
+    endif
+  endfor 
+endfunction
+
+"--- Coc.nvim ---
+" code navigation
 nmap <silent> gd <Plug>(coc-definition)
 nmap <silent> gy <Plug>(coc-type-definition)
 nmap <silent> gi <Plug>(coc-implementation)
 nmap <silent> gr <Plug>(coc-references)
-
+" Use `:CocDiagnostics` to get all diagnostics of current buffer in location list.
+nmap <silent> [g <Plug>(coc-diagnostic-prev)
+nmap <silent> ]g <Plug>(coc-diagnostic-next)
+nnoremap <silent> K :call <SID>show_documentation()<CR>
+inoremap <silent><expr> <C-l>  coc#refresh()
+function! s:show_documentation()
+  if (index(['vim','help'], &filetype) >= 0)
+    execute 'h '.expand('<cword>')
+  else
+    call CocAction('doHover')
+  endif
+endfunction
 "don't give |ins-completion-menu| messages.
 set shortmess+=c
 set signcolumn=yes " always show signcolumns
-
+set updatetime=300
 " Use tab for trigger completion with characters ahead and navigate.
 inoremap <silent><expr> <TAB>
       \ pumvisible() ? "\<C-n>" :

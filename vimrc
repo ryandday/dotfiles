@@ -67,6 +67,7 @@ set ignorecase " ignore case when searching
 set wildignorecase 
 set wildignore+=**/*.pyc*/**
 set wildignore+=**/*pycache*/**
+set wildignore+=**/*cpython*/**
 
 " vim splits 
 nnoremap <Leader>j <C-w>j 
@@ -83,9 +84,9 @@ nnoremap <Leader>n :bn<CR>
 nnoremap <Leader>p :bp<CR>
 
 " search working directory
-nnoremap <Leader>ff :vimgrep  **/* <Left><Left><Left><Left><Left><Left>
-" search working directory with word under cursor
-command! VIMGREP :execute 'vimgrep '.expand('<cword>').' **/*'
+nnoremap <Leader>ff :vimgrep  ** <Left><Left><Left><Left>
+" search working directory with wrd under cursor
+command! VIMGREP :execute 'vimgrep '.expand('<cword>').' **'
 nnoremap <Leader>fw :VIMGREP<CR>
 
 nnoremap <Leader>cc :cclose<CR>

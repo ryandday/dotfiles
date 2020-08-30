@@ -262,8 +262,8 @@ let g:vimspector_enable_mappings = 'HUMAN'
 " VimspectorReset leaves no name buffers
 nmap <leader>rq :VimspectorReset<CR>:WipeNoNameBuffers<CR>
 
-command! WipeNoNameBuffers call s:delete_no_name_buffers() 
-function! s:delete_no_name_buffers()
+command! WipeNoNameBuffers call s:wipe_no_name_buffers()
+function! s:wipe_no_name_buffers()
   let bufinfos = getbufinfo()
   for bufinfo in bufinfos
     if bufinfo['name'] == ""

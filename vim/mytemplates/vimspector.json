@@ -1,0 +1,15 @@
+{
+  "configurations": {
+    "run vscode-python": {
+      "adapter": "vscode-python", 
+      "configuration": {
+        "request": "launch",
+        "type": "python3",
+        "cwd": "${workspaceRoot}",
+        "module": "path.to.main",
+        "stopOnEntry": true,
+        "console": "integratedTerminal"
+      }
+  }
+  }
+}

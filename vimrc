@@ -206,9 +206,9 @@ function! s:show_line_nums_git_diff()
   echom(system(command))
 endfunction
 
+sign define GitChanged text=! texthl=Search
 function! s:highlight_changed()
   execute "sign unplace *" 
-  sign define GitChanged text=! texthl=Search
   let l:command = "git blame -p ".expand(@%)." | grep '0000000000000000000000000000000000000000' | awk '{print $3}'"
   let line_nums = split(system(l:command), '\n')
   for numba in line_nums
@@ -259,7 +259,7 @@ set bg=dark
 
 "--- Vimspector ---
 let g:vimspector_enable_mappings = 'HUMAN'
-" clear Vimspector's no name buffers
+" VimspectorReset leaves no name buffers
 nmap <leader>rq :VimspectorReset<CR>:WipeNoNameBuffers<CR>
 
 command! WipeNoNameBuffers call s:delete_no_name_buffers() 
@@ -283,6 +283,8 @@ nmap <silent> [g <Plug>(coc-diagnostic-prev)
 nmap <silent> ]g <Plug>(coc-diagnostic-next)
 nnoremap <silent> K :call <SID>show_documentation()<CR>
 inoremap <silent><expr> <C-l>  coc#refresh()
+nnoremap <leader>cl :CocCommand python.enableLinting<CR>
+
 function! s:show_documentation()
   if (index(['vim','help'], &filetype) >= 0)
     execute 'h '.expand('<cword>')

@@ -89,10 +89,15 @@ nnoremap <Leader>ff :vimgrep  ** <Left><Left><Left><Left>
 command! VIMGREP :execute 'vimgrep '.expand('<cword>').' **'
 nnoremap <Leader>fw :VIMGREP<CR>
 
+nnoremap <Leader>lc :lclose<CR>
+nnoremap <Leader>lo :lopen<CR>
+nnoremap ]l :lnext<CR>
+nnoremap [l :lprev<CR>
+
 nnoremap <Leader>cc :cclose<CR>
 nnoremap <Leader>co :copen<CR>
-nnoremap <Leader>cn :cn<CR>
-nnoremap <Leader>cp :cp<CR>
+nnoremap ]q :cn<CR>
+nnoremap [q :cp<CR>
 
 " rename in current file 
 nnoremap <leader>rl :execute '%s/'.expand('<cword>').'//gc'<Left><Left><Left><Left>
@@ -117,9 +122,9 @@ function! s:QuickFixOpenAll()
 endfunction
 
 "--- Language Specific --- 
-" switch between header and cpp files
+" switch between/create header and cpp files in same folder
 nnoremap <Leader>tp :e %:r.cpp<CR>
-nnoremap <Leader>th :e %:r.h<CR>
+nnoremap <Leader>th :e %:r.hpp
 
 " run python file in register as module 
 nnoremap <Leader>rp :RunPy<CR>

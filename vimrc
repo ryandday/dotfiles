@@ -133,7 +133,7 @@ nnoremap <Leader>m :BuildMake<cr><cr><cr>
 "--- Git Shortcuts ---
 nnoremap <leader>gd :Gvdiffsplit<CR>
 nnoremap <leader>gs :G<CR>
-nnoremap <leader>ga :G add -p<CR>
+nnoremap <leader>ga :G add .<CR>
 nnoremap <leader>gr :GRename<space>
 nnoremap <leader>gm :GMove<space>
 nnoremap <leader>gp :G push<CR>

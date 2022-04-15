@@ -74,7 +74,7 @@ nnoremap <Leader>h <C-w>h
 set splitbelow
 set splitright
 
-nnoremap <Leader>b :ls<CR>:b<SPACE>
+nnoremap <Leader>b :Buffers<CR>
 nnoremap <Leader>d :bd<CR>
 
 nnoremap <Leader>fn :Rg<CR>
@@ -90,8 +90,23 @@ nnoremap <Leader>co :copen<CR>
 nnoremap ]q :cn<CR>
 nnoremap [q :cp<CR>
 
+nnoremap <Leader>tc :tabclose<CR>
+nnoremap <Leader>to :tabnew<CR>
+nnoremap ]t :tabnext<CR>
+nnoremap [t :tabprev<CR>
+
 " replace in current file 
 nnoremap <leader>rl :execute '%s/'.expand('<cword>').'//gc'<Left><Left><Left><Left>
+
+command! WipeNoNameBuffers call s:wipe_no_name_buffers()
+function! s:wipe_no_name_buffers()
+  let bufinfos = getbufinfo()
+  for bufinfo in bufinfos
+    if bufinfo['name'] == ""
+      execute "bw ".bufinfo['bufnr']
+    endif
+  endfor 
+endfunction
 
 "--- Netrw Settings ---
 let g:netrw_banner=0
@@ -118,11 +133,11 @@ nnoremap <Leader>m :BuildMake<cr><cr><cr>
 "--- Git Shortcuts ---
 nnoremap <leader>gd :Gvdiffsplit<CR>
 nnoremap <leader>gs :G<CR>
-nnoremap <leader>ga :G add .<CR>
+nnoremap <leader>ga :G add -p<CR>
 nnoremap <leader>gr :GRename<space>
 nnoremap <leader>gm :GMove<space>
 nnoremap <leader>gp :G push<CR>
-nnoremap <leader>gq :q<CR>
+nnoremap <leader>gc :G commit<CR>
 
 "--- Plugins ---
 call plug#begin('~/.vim/plugged')
@@ -145,8 +160,6 @@ call plug#begin('~/.vim/plugged')
   Plug 'mattn/vim-lsp-settings'
   Plug 'prabirshrestha/asyncomplete.vim'
   Plug 'prabirshrestha/asyncomplete-lsp.vim'
-  " debug
-  Plug 'puremourning/vimspector'
 call plug#end()
 
 " Let Ale do diagnostics
@@ -162,21 +175,6 @@ inoremap <expr> <cr>    pumvisible() ? asyncomplete#close_popup() : "\<cr>"
 "--- Gruvbox ---
 colorscheme gruvbox
 set bg=dark
-
-"--- Vimspector ---
-let g:vimspector_enable_mappings = 'HUMAN'
-" VimspectorReset leaves no name buffers
-nmap <leader>rq :VimspectorReset<CR>:WipeNoNameBuffers<CR>
-
-command! WipeNoNameBuffers call s:wipe_no_name_buffers()
-function! s:wipe_no_name_buffers()
-  let bufinfos = getbufinfo()
-  for bufinfo in bufinfos
-    if bufinfo['name'] == ""
-      execute "bw ".bufinfo['bufnr']
-    endif
-  endfor 
-endfunction
 
 "--- vim-lsp ---
 if executable('clangd')
@@ -211,5 +209,4 @@ augroup lsp_install
     " call s:on_lsp_buffer_enabled only for languages that has the server registered.
     autocmd User lsp_buffer_enabled call s:on_lsp_buffer_enabled()
 augroup END
-
 

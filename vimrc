@@ -16,6 +16,7 @@ set updatetime=100
 "no gruvbox
 " set t_Co=256
 " colorscheme desert
+let g:termdebug_wide=1
 
 let mapleader = " "
 " Prevent leader key from inserting a space 

@@ -16,7 +16,6 @@ set updatetime=100
 "no gruvbox
 " set t_Co=256
 " colorscheme desert
-let g:termdebug_wide=1
 
 let mapleader = " "
 " Prevent leader key from inserting a space 
@@ -131,6 +130,8 @@ endfunction
 
 nnoremap <Leader>m :BuildMake<cr><cr><cr>
 
+let g:termdebug_wide=1
+
 "--- Git Shortcuts ---
 nnoremap <leader>gd :Gvdiffsplit<CR>
 nnoremap <leader>gs :G<CR>
@@ -194,15 +195,9 @@ function! s:on_lsp_buffer_enabled() abort
     nmap <buffer> gs <plug>(lsp-document-symbol-search)
     nmap <buffer> gS <plug>(lsp-workspace-symbol-search)
     nmap <buffer> gr <plug>(lsp-references)
-    nmap <buffer> gi <plug>(lsp-implementation)
     nmap <buffer> gt <plug>(lsp-type-definition)
     nmap <buffer> <leader>rn <plug>(lsp-rename)
     nmap <buffer> K <plug>(lsp-hover)
-
-    let g:lsp_format_sync_timeout = 1000
-    autocmd! BufWritePre *.rs,*.go call execute('LspDocumentFormatSync')
-    
-    " refer to doc to add more commands
 endfunction
 
 augroup lsp_install

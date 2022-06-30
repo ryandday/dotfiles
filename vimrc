@@ -13,13 +13,10 @@ set undolevels=1000
 set modelines=0
 set nomodeline
 set updatetime=100
-"no gruvbox
-" set t_Co=256
-" colorscheme desert
 
 let mapleader = " "
 " Prevent leader key from inserting a space 
-nnoremap <SPACE> <Nop> 
+nnoremap <space> <nop> 
 
 set tabstop=2 " number of visual spaces per TAB
 set shiftwidth=2 " '>' uses spaces
@@ -30,8 +27,8 @@ set listchars=tab:>~ " Show tab characters as symbols
 set number
 set relativenumber
 " Toggle relative line numbering
-nnoremap <Leader>rr :set norelativenumber!<CR>
-nnoremap <Leader>z :source ~/.vimrc<CR> 
+nnoremap <leader>rr :set norelativenumber!<cr>
+nnoremap <leader>z :source ~/.vimrc<cr> 
  
 "--- Backups ---
 set undofile
@@ -46,15 +43,15 @@ set directory=~/.vim/.swp//
 " use system clipboard as default copy buffer
 set clipboard^=unnamed,unnamedplus
 " yank relative path
-nnoremap <leader>yf :let @+=expand("%")<CR>
+nnoremap <leader>yf :let @+=expand("%")<cr>
 " yank absolute path
-nnoremap <leader>ya :let @+=expand("%:p")<CR>
+nnoremap <leader>ya :let @+=expand("%:p")<cr>
 " yank filename
-nnoremap <leader>yt :let @+=expand("%:t")<CR>
+nnoremap <leader>yt :let @+=expand("%:t")<cr>
 " yank directory name
-nnoremap <leader>yh :let @+=expand("%:p:h")<CR>
+nnoremap <leader>yh :let @+=expand("%:p:h")<cr>
 
-"--- Search and Navigation ---
+"--- Search, Replace, and Navigation ---
 set path+=** " adds all files in cwd for find
 set wildmenu
 set wildmode=longest,list
@@ -66,37 +63,23 @@ set wildignore+=**/*pycache*/**
 set wildignore+=**/*cpython*/**
 set wildignore+=build*/**
 
-" vim splits 
-nnoremap <Leader>j <C-w>j 
-nnoremap <Leader>k <C-w>k 
-nnoremap <Leader>l <C-w>l 
-nnoremap <Leader>h <C-w>h 
-set splitbelow
-set splitright
+if executable('rg')
+  set grepprg=rg\ --vimgrep\ --no-heading\ --smart-case
+endif
 
-nnoremap <Leader>b :Buffers<CR>
-nnoremap <Leader>d :bd<CR>
-
-nnoremap <Leader>fn :Rg<CR>
-nnoremap <Leader>ff :GFiles<CR>
-
-nnoremap <Leader>lc :lclose<CR>
-nnoremap <Leader>lo :lopen<CR>
-nnoremap ]l :lnext<CR>
-nnoremap [l :lprev<CR>
-
-nnoremap <Leader>cc :cclose<CR>
-nnoremap <Leader>co :copen<CR>
-nnoremap ]q :cn<CR>
-nnoremap [q :cp<CR>
-
-nnoremap <Leader>tc :tabclose<CR>
-nnoremap <Leader>to :tabnew<CR>
-nnoremap ]t :tabnext<CR>
-nnoremap [t :tabprev<CR>
+nnoremap <leader>ff :GFiles<cr>
+nnoremap <leader>fn :grep! "" **/* <Left><Left><Left><Left><Left><Left><Left>
+command! VIMGREPCURRWORD :execute 'grep! '.expand('<cword>').' **/*'
+nnoremap <leader>fw :VIMGREPCURRWORD<cr><cr>:copen<cr>
 
 " replace in current file 
 nnoremap <leader>rl :execute '%s/'.expand('<cword>').'//gc'<Left><Left><Left><Left>
+" replace globally
+nnoremap <leader>rg :VIMGREPCURRWORD<cr>:execute 'cfdo %s/'.expand('<cword>').'//gec'<Left><Left><Left><Left><Left>
+
+"--- Buffers ---
+nnoremap <leader>b :Buffers<cr>
+nnoremap <leader>d :bd<cr>
 
 command! WipeNoNameBuffers call s:wipe_no_name_buffers()
 function! s:wipe_no_name_buffers()
@@ -108,18 +91,46 @@ function! s:wipe_no_name_buffers()
   endfor 
 endfunction
 
+"--- Windows --- 
+nnoremap <leader>j <C-w>j 
+nnoremap <leader>k <C-w>k 
+nnoremap <leader>l <C-w>l 
+nnoremap <leader>h <C-w>h 
+set splitbelow
+set splitright
+
+"--- Bracket mappings ---
+nnoremap <leader>lc :lclose<cr>
+nnoremap <leader>lo :lopen<cr>
+nnoremap ]l :lnext<cr>
+nnoremap [l :lprev<cr>
+nnoremap [L :lfirst<cr>
+nnoremap ]L :llast<cr>
+
+nnoremap <leader>cc :cclose<cr>
+nnoremap <leader>co :copen<cr>
+nnoremap ]q :cn<cr>
+nnoremap [q :cp<cr>
+nnoremap [Q :cfirst<cr>
+nnoremap ]Q :clast<cr>
+
+nnoremap <leader>tc :tabclose<cr>
+nnoremap <leader>to :tabnew<cr>
+nnoremap ]t :tabnext<cr>
+nnoremap [t :tabprev<cr>
+
 "--- Netrw Settings ---
 let g:netrw_banner=0
 let g:netrw_bufsettings = 'noma nomod nu nobl nowrap ro' " Set line numbers in netrw
 let g:netrw_list_hide = '\(^\|\s\s\)\zs\.\S\+' " hide dotfiles in netrw - turn back on with gh
 let g:netrw_fastbrowse=0 " turn off persistent hidden buffer behavior
-nnoremap - :E .<CR>
-nnoremap <Leader>E :E .<CR>
+nnoremap - :E .<cr>
+nnoremap <leader>E :E .<cr>
 
 "--- Cpp --- 
 " switch between header and cpp files 
-nnoremap <Leader>tp :find %:t:r.cpp<CR>
-nnoremap <Leader>th :find %:t:r.h<CR>
+nnoremap <leader>tp :find %:t:r.cpp<cr>
+nnoremap <leader>th :find %:t:r.h<cr>
 
 command! BuildMake call s:buildMake()
 function! s:buildMake()
@@ -128,18 +139,19 @@ function! s:buildMake()
   cd ..
 endfunction
 
-nnoremap <Leader>m :BuildMake<cr><cr><cr>
-
+nnoremap <leader>m :BuildMake<cr><cr><cr>
 let g:termdebug_wide=1
 
 "--- Git Shortcuts ---
-nnoremap <leader>gd :Gvdiffsplit<CR>
-nnoremap <leader>gs :G<CR>
-nnoremap <leader>ga :G add .<CR>
+nnoremap <leader>gd :Gvdiffsplit<cr>
+nnoremap <leader>gs :G<cr>
+nnoremap <leader>ga :G add -A<cr>
 nnoremap <leader>gr :GRename<space>
 nnoremap <leader>gm :GMove<space>
-nnoremap <leader>gp :G push<CR>
-nnoremap <leader>gc :G commit<CR>
+nnoremap <leader>gp :G push<cr>
+nnoremap <leader>gc :G commit<cr>
+nnoremap <leader>gb :G blame<cr>
+nnoremap <leader>gl :Gclog<cr>
 
 "--- Plugins ---
 call plug#begin('~/.vim/plugged')
@@ -169,12 +181,12 @@ let g:lsp_diagnostics_enabled = 0
 nmap ]g :ALENext<cr>
 nmap [g :ALEPrevious<cr>
 
-"--- Asynccomplete
+"--- asynccomplete ---
 inoremap <expr> <Tab>   pumvisible() ? "\<C-n>" : "\<Tab>"
 inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
 inoremap <expr> <cr>    pumvisible() ? asyncomplete#close_popup() : "\<cr>"
 
-"--- Gruvbox ---
+"--- gruvbox ---
 colorscheme gruvbox
 set bg=dark
 

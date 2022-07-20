@@ -9,8 +9,7 @@ set encoding=utf-8
 set cursorline
 set linebreak
 set undolevels=1000
-" Disable modelines, bc its a possible security risk
-set modelines=0
+set modelines=0 " Disable modelines, bc its a possible security risk
 set nomodeline
 set updatetime=100
 
@@ -23,6 +22,8 @@ set shiftwidth=2 " '>' uses spaces
 set expandtab "insert spaces on tab
 set list
 set listchars=tab:>~ " Show tab characters as symbols
+autocmd FileType * setlocal formatoptions-=c formatoptions-=r formatoptions-=o " Don't auto comment on newline
+set backspace=indent,eol,start " allow backspacing in insert mode
 
 set number
 set relativenumber
@@ -61,13 +62,20 @@ set wildignorecase
 set wildignore+=**/*.pyc*/**
 set wildignore+=**/*pycache*/**
 set wildignore+=**/*cpython*/**
-set wildignore+=build*/**
+set wildignore+=**/*build*/**
+set wildignore+=**/*MakeFile*/**
+set wildignore+=**/*CMakeFiles*/**
+set wildignore+=**/*.a*/**
+set wildignore+=**/*.o*/**
 
 if executable('rg')
-  set grepprg=rg\ --vimgrep\ --no-heading\ --smart-case
+  set grepprg=rg\ --vimgrep\ --no-heading\ --smart-case\ --ignore-file\ .gitignore
 endif
 
-nnoremap <leader>ff :GFiles<cr>
+nnoremap <leader>s :GFiles<cr>
+nnoremap <leader>d :Rg<cr>
+
+nnoremap <leader>ff :Files<cr>
 nnoremap <leader>fn :grep! "" **/* <Left><Left><Left><Left><Left><Left><Left>
 command! VIMGREPCURRWORD :execute 'grep! '.expand('<cword>').' **/*'
 nnoremap <leader>fw :VIMGREPCURRWORD<cr><cr>:copen<cr>
@@ -79,7 +87,7 @@ nnoremap <leader>rg :VIMGREPCURRWORD<cr>:execute 'cfdo %s/'.expand('<cword>').'/
 
 "--- Buffers ---
 nnoremap <leader>b :Buffers<cr>
-nnoremap <leader>d :bd<cr>
+nnoremap <leader>x :bd<cr>
 
 command! WipeNoNameBuffers call s:wipe_no_name_buffers()
 function! s:wipe_no_name_buffers()
@@ -124,7 +132,7 @@ let g:netrw_banner=0
 let g:netrw_bufsettings = 'noma nomod nu nobl nowrap ro' " Set line numbers in netrw
 let g:netrw_list_hide = '\(^\|\s\s\)\zs\.\S\+' " hide dotfiles in netrw - turn back on with gh
 let g:netrw_fastbrowse=0 " turn off persistent hidden buffer behavior
-nnoremap - :E .<cr>
+nnoremap - :E<cr>
 nnoremap <leader>E :E .<cr>
 
 "--- Cpp --- 
@@ -135,7 +143,7 @@ nnoremap <leader>th :find %:t:r.h<cr>
 command! BuildMake call s:buildMake()
 function! s:buildMake()
   cd build
-  make -j 
+  Make -j 
   cd ..
 endfunction
 
@@ -165,6 +173,9 @@ call plug#begin('~/.vim/plugged')
   Plug 'tpope/vim-surround'
   Plug 'tpope/vim-abolish'
   Plug 'tpope/vim-commentary'
+  Plug 'tpope/vim-repeat'
+  " Async
+  Plug 'tpope/vim-dispatch'
   " Git
   Plug 'tpope/vim-fugitive'
   Plug 'airblade/vim-gitgutter'
@@ -176,11 +187,6 @@ call plug#begin('~/.vim/plugged')
   Plug 'prabirshrestha/asyncomplete-lsp.vim'
 call plug#end()
 
-" Let Ale do diagnostics
-let g:lsp_diagnostics_enabled = 0
-nmap ]g :ALENext<cr>
-nmap [g :ALEPrevious<cr>
-
 "--- asynccomplete ---
 inoremap <expr> <Tab>   pumvisible() ? "\<C-n>" : "\<Tab>"
 inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
@@ -190,7 +196,13 @@ inoremap <expr> <cr>    pumvisible() ? asyncomplete#close_popup() : "\<cr>"
 colorscheme gruvbox
 set bg=dark
 
+"--- ale ---
+nmap ]g :ALENext<cr>
+nmap [g :ALEPrevious<cr>
+
 "--- vim-lsp ---
+let g:lsp_diagnostics_enabled = 0 " Let Ale do diagnostics
+
 if executable('clangd')
     au User lsp_setup call lsp#register_server({
         \ 'name': 'clangd',

@@ -8,4 +8,4 @@ brew install vim
 brew install tmux
 brew install fzf
 brew install rg
-brew install --cask alacritty
+brew install --cask alacritty # System Preferences - Security and Privacy - General - Open Anyway

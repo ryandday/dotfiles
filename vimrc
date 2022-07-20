@@ -9,25 +9,25 @@ set encoding=utf-8
 set cursorline
 set linebreak
 set undolevels=1000
-set modelines=0 " Disable modelines, bc its a possible security risk
+set modelines=0 " disable modelines, bc its a possible security risk
 set nomodeline
 set updatetime=100
 
 let mapleader = " "
-" Prevent leader key from inserting a space 
+" prevent leader key from inserting a space 
 nnoremap <space> <nop> 
 
-set tabstop=2 " number of visual spaces per TAB
-set shiftwidth=2 " '>' uses spaces
-set expandtab "insert spaces on tab
 set list
 set listchars=tab:>~ " Show tab characters as symbols
-autocmd FileType * setlocal formatoptions-=c formatoptions-=r formatoptions-=o " Don't auto comment on newline
+set tabstop=2 " number of visual spaces per tab
+set shiftwidth=2 " '>' uses spaces
+set expandtab " insert spaces on tab
+autocmd FileType * setlocal formatoptions-=c formatoptions-=r formatoptions-=o " don't auto comment on newline after comment
 set backspace=indent,eol,start " allow backspacing in insert mode
 
 set number
 set relativenumber
-" Toggle relative line numbering
+" toggle relative line numbering
 nnoremap <leader>rr :set norelativenumber!<cr>
 nnoremap <leader>z :source ~/.vimrc<cr> 
  
@@ -129,7 +129,7 @@ nnoremap [t :tabprev<cr>
 
 "--- Netrw Settings ---
 let g:netrw_banner=0
-let g:netrw_bufsettings = 'noma nomod nu nobl nowrap ro' " Set line numbers in netrw
+let g:netrw_bufsettings = 'noma nomod nu nobl nowrap ro' " set line numbers in netrw
 let g:netrw_list_hide = '\(^\|\s\s\)\zs\.\S\+' " hide dotfiles in netrw - turn back on with gh
 let g:netrw_fastbrowse=0 " turn off persistent hidden buffer behavior
 nnoremap - :E<cr>

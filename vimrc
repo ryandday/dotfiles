@@ -74,7 +74,6 @@ endif
 
 nnoremap <leader>s :GFiles<cr>
 nnoremap <leader>d :Rg<cr>
-
 nnoremap <leader>ff :Files<cr>
 nnoremap <leader>fn :grep! "" **/* <Left><Left><Left><Left><Left><Left><Left>
 command! VIMGREPCURRWORD :execute 'grep! '.expand('<cword>').' **/*'

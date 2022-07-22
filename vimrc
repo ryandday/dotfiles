@@ -1,10 +1,12 @@
+"--- Basics ---
 syntax on
 filetype plugin indent on
 set nocompatible
-inoremap jk <ESC>
-set laststatus=2
+inoremap jk <esc>
+set laststatus=2 " always show statusbar
 set hidden " enable changing buffers without saving
 set lazyredraw
+set ttyfast
 set encoding=utf-8
 set cursorline
 set linebreak
@@ -75,14 +77,14 @@ endif
 nnoremap <leader>s :GFiles<cr>
 nnoremap <leader>d :Rg<cr>
 nnoremap <leader>ff :Files<cr>
-nnoremap <leader>fn :grep! "" **/* <Left><Left><Left><Left><Left><Left><Left>
+nnoremap <leader>fn :grep! "" **/* <left><left><left><left><left><left><left>
 command! VIMGREPCURRWORD :execute 'grep! '.expand('<cword>').' **/*'
 nnoremap <leader>fw :VIMGREPCURRWORD<cr><cr>:copen<cr>
 
 " replace in current file 
-nnoremap <leader>rl :execute '%s/'.expand('<cword>').'//gc'<Left><Left><Left><Left>
+nnoremap <leader>rl :execute '%s/'.expand('<cword>').'//gc'<left><left><left><left>
 " replace globally
-nnoremap <leader>rg :VIMGREPCURRWORD<cr>:execute 'cfdo %s/'.expand('<cword>').'//gec'<Left><Left><Left><Left><Left>
+nnoremap <leader>rg :VIMGREPCURRWORD<cr>:execute 'cfdo %s/'.expand('<cword>').'//gec'<left><left><left><left><left>
 
 "--- Buffers ---
 nnoremap <leader>b :Buffers<cr>
@@ -99,10 +101,10 @@ function! s:wipe_no_name_buffers()
 endfunction
 
 "--- Windows --- 
-nnoremap <leader>j <C-w>j 
-nnoremap <leader>k <C-w>k 
-nnoremap <leader>l <C-w>l 
-nnoremap <leader>h <C-w>h 
+nnoremap <leader>j <c-w>j 
+nnoremap <leader>k <c-w>k 
+nnoremap <leader>l <c-w>l 
+nnoremap <leader>h <c-w>h 
 set splitbelow
 set splitright
 
@@ -149,17 +151,6 @@ endfunction
 nnoremap <leader>m :BuildMake<cr><cr><cr>
 let g:termdebug_wide=1
 
-"--- Git Shortcuts ---
-nnoremap <leader>gd :Gvdiffsplit<cr>
-nnoremap <leader>gs :G<cr>
-nnoremap <leader>ga :G add -A<cr>
-nnoremap <leader>gr :GRename<space>
-nnoremap <leader>gm :GMove<space>
-nnoremap <leader>gp :G push<cr>
-nnoremap <leader>gc :G commit<cr>
-nnoremap <leader>gb :G blame<cr>
-nnoremap <leader>gl :Gclog<cr>
-
 "--- Plugins ---
 call plug#begin('~/.vim/plugged')
   " Fuzzy find
@@ -178,7 +169,7 @@ call plug#begin('~/.vim/plugged')
   " Git
   Plug 'tpope/vim-fugitive'
   Plug 'airblade/vim-gitgutter'
-  " LSP features, linting and autocomplete, 
+  " LSP features, linting and autocomplete 
   Plug 'dense-analysis/ale'
   Plug 'prabirshrestha/vim-lsp'
   Plug 'mattn/vim-lsp-settings'
@@ -186,9 +177,20 @@ call plug#begin('~/.vim/plugged')
   Plug 'prabirshrestha/asyncomplete-lsp.vim'
 call plug#end()
 
+"--- vim-fugitive ---
+nnoremap <leader>gd :Gvdiffsplit<cr>
+nnoremap <leader>gs :G<cr>
+nnoremap <leader>ga :G add -A<cr>
+nnoremap <leader>gr :GRename<space>
+nnoremap <leader>gm :GMove<space>
+nnoremap <leader>gp :G push<cr>
+nnoremap <leader>gc :G commit<cr>
+nnoremap <leader>gb :G blame<cr>
+nnoremap <leader>gl :Gclog<cr>
+
 "--- asynccomplete ---
-inoremap <expr> <Tab>   pumvisible() ? "\<C-n>" : "\<Tab>"
-inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
+inoremap <expr> <tab>   pumvisible() ? "\<c-n>" : "\<tab>"
+inoremap <expr> <s-tab> pumvisible() ? "\<c-p>" : "\<s-tab>"
 inoremap <expr> <cr>    pumvisible() ? asyncomplete#close_popup() : "\<cr>"
 
 "--- gruvbox ---

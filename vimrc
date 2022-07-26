@@ -88,7 +88,7 @@ nnoremap <leader>rg :VIMGREPCURRWORD<cr>:execute 'cfdo %s/'.expand('<cword>').'/
 
 "--- Buffers ---
 nnoremap <leader>b :Buffers<cr>
-nnoremap <leader>x :bd<cr>
+nnoremap <leader>x :bd!<cr>
 
 command! WipeNoNameBuffers call s:wipe_no_name_buffers()
 function! s:wipe_no_name_buffers()

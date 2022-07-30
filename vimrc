@@ -29,8 +29,8 @@ set backspace=indent,eol,start " allow backspacing in insert mode
 
 set number
 set relativenumber
-" toggle relative line numbering
-nnoremap <leader>rr :set norelativenumber!<cr>
+" toggle line numbering
+nnoremap <leader>rr :set norelativenumber!<cr>:set nonumber!<cr>
 nnoremap <leader>z :source ~/.vimrc<cr> 
  
 "--- Backups ---

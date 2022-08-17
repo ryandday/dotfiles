@@ -10,6 +10,7 @@ alias cpuhogs='ps wwaxr -o pid,stat,%cpu,time,command | head -10'
 export FZF_DEFAULT_COMMAND='rg --files'
 export CLICOLOR=1
 export LSCOLORS=ExFxBxDxCxegedabagacad
+export REVIEW_BASE=main # Used in git aliases
 
 # Fzf switch branches
 alias gb="git branch -a -vv --color=always | grep -v '/HEAD\s' | fzf --height 100% --ansi --multi --tac | sed 's/^..//' | awk '{print $1}' | sed 's#^remotes/[^/]*/##' | xargs git checkout"
@@ -34,5 +35,4 @@ ta() {
 
   tmux switch-client -t $selected_name
 }
-
 

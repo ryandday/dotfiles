@@ -1,0 +1,10 @@
+[diff]
+	tool = vimdiff
+[difftool]
+	prompt = false
+[init]
+	defaultBranch = main
+[alias]
+    files = !git diff --name-only $(git merge-base HEAD main)
+    review = !vim -p $(git files) +\"tabdo Gdiff $REVIEW_BASE\" +\"let g:gitgutter_diff_base = '$REVIEW_BASE'\"
+    reviewone = !vim -p +\"tabdo Gdiff $REVIEW_BASE\" +\"let g:gitgutter_diff_base = '$REVIEW_BASE'\"

@@ -11,6 +11,9 @@ export FZF_DEFAULT_COMMAND='rg --files'
 export CLICOLOR=1
 export LSCOLORS=ExFxBxDxCxegedabagacad
 
+# Fzf switch branches
+alias gb="git branch -a -vv --color=always | grep -v '/HEAD\s' | fzf --height 100% --ansi --multi --tac | sed 's/^..//' | awk '{print $1}' | sed 's#^remotes/[^/]*/##' | xargs git checkout"
+
 ta() {
   if [[ -z $TMUX ]]; then
     echo "Run with tmux"
@@ -32,9 +35,4 @@ ta() {
   tmux switch-client -t $selected_name
 }
 
-gb() {
-  git checkout $(git branch -a -vv --color=always | grep -v '/HEAD\s' |
-    fzf --ansi --multi --tac | sed 's/^..//' | awk '{print $1}' |
-    sed 's#^remotes/[^/]*/##')
-}
 

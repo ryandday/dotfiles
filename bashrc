@@ -6,7 +6,6 @@ alias mux='pgrep -vx tmux > /dev/null && \
         tmux attach || tmux attach'
 
 alias cpuhogs='ps wwaxr -o pid,stat,%cpu,time,command | head -10'
-alias pr="vim -c 'syntax off'  -c 'tabdo set filetype=review' -c 'tabdo Gdiff '${1:-main} $(git diff --name-only --diff-filter=AM ${1:-main}) -p"
 
 export FZF_DEFAULT_COMMAND='rg --files'
 export CLICOLOR=1
@@ -31,5 +30,11 @@ ta() {
   fi
 
   tmux switch-client -t $selected_name
+}
+
+gb() {
+  git checkout $(git branch -a -vv --color=always | grep -v '/HEAD\s' |
+    fzf --ansi --multi --tac | sed 's/^..//' | awk '{print $1}' |
+    sed 's#^remotes/[^/]*/##')
 }
 

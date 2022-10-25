@@ -32,6 +32,7 @@ set relativenumber
 " toggle line numbering
 nnoremap <leader>rr :set norelativenumber!<cr>:set nonumber!<cr>
 nnoremap <leader>z :source ~/.vimrc<cr> 
+nnoremap <leader>w :w<cr>
  
 "--- Backups ---
 set undofile
@@ -70,15 +71,13 @@ set wildignore+=**/*CMakeFiles*/**
 set wildignore+=**/*.a*/**
 set wildignore+=**/*.o*/**
 
-if executable('rg')
-  set grepprg=rg\ --vimgrep\ --no-heading\ --smart-case\ --ignore-file\ .gitignore
-endif
+set grepprg=rg\ --vimgrep\ --no-heading\ --smart-case\ --ignore-file\ .gitignore
+nnoremap <leader>d :Rg<cr>
 
 nnoremap <leader>s :GFiles<cr>
-nnoremap <leader>d :Rg<cr>
 nnoremap <leader>ff :Files<cr>
-nnoremap <leader>fn :grep! "" **/* <left><left><left><left><left><left><left>
-command! VIMGREPCURRWORD :execute 'grep! '.expand('<cword>').' **/*'
+nnoremap <leader>fn :grep! "" <left><left>
+command! VIMGREPCURRWORD :execute 'grep! '.expand('<cword>')
 nnoremap <leader>fw :VIMGREPCURRWORD<cr><cr>:copen<cr>
 
 " replace in current file 
@@ -101,10 +100,6 @@ function! s:wipe_no_name_buffers()
 endfunction
 
 "--- Windows --- 
-nnoremap <leader>j <c-w>j 
-nnoremap <leader>k <c-w>k 
-nnoremap <leader>l <c-w>l 
-nnoremap <leader>h <c-w>h 
 set splitbelow
 set splitright
 
@@ -118,10 +113,11 @@ nnoremap ]L :llast<cr>
 
 nnoremap <leader>cc :cclose<cr>
 nnoremap <leader>co :copen<cr>
-nnoremap ]q :cn<cr>
-nnoremap [q :cp<cr>
-nnoremap [Q :cfirst<cr>
-nnoremap ]Q :clast<cr>
+nnoremap <leader>k :cf<cr>
+nnoremap <leader>K :cfirst<cr>
+nnoremap <leader>j :clast<cr>
+nnoremap <c-k> :cp<cr>
+nnoremap <c-j> :cn<cr>
 
 nnoremap <leader>tc :tabclose<cr>
 nnoremap <leader>to :tabnew<cr>
@@ -143,9 +139,9 @@ nnoremap <leader>th :find %:t:r.h<cr>
 
 command! BuildMake call s:buildMake()
 function! s:buildMake()
-  cd build
+  lcd build
   Make -j 
-  cd ..
+  lcd ..
 endfunction
 
 nnoremap <leader>m :BuildMake<cr><cr><cr>

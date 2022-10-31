@@ -18,12 +18,13 @@ alias gb="git branch -a -vv --color=always | grep -v '/HEAD\s' | fzf --height 10
 ta() {
   if [[ -z $TMUX ]]; then
     echo "Run with tmux"
+    return 0
   fi
 
   selected=$(find ~/repos -mindepth 1 -maxdepth 1 -type d | fzf)
 
   if [[ -z $selected ]]; then
-      exit 0
+    return 0
   fi
 
   selected_name=$(basename "$selected" | tr . _)

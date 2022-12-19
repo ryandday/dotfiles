@@ -1,6 +1,7 @@
 "--- Basics ---
 syntax on
 filetype plugin indent on
+
 set nocompatible
 inoremap jk <esc>
 set laststatus=2 " always show statusbar
@@ -10,10 +11,11 @@ set ttyfast
 set encoding=utf-8
 set cursorline
 set linebreak
+set scrolloff=8
 set undolevels=1000
 set modelines=0 " disable modelines, bc its a possible security risk
 set nomodeline
-set updatetime=100
+set updatetime=50
 
 let mapleader = " "
 " prevent leader key from inserting a space 
@@ -71,6 +73,12 @@ set wildignore+=**/*CMakeFiles*/**
 set wildignore+=**/*.a*/**
 set wildignore+=**/*.o*/**
 
+" when searching or navigating, center the cursor vertically
+nnoremap n nzz
+nnoremap N Nzz
+nnoremap <c-d> <c-d>zz
+nnoremap <c-u> <c-u>zz
+
 set grepprg=rg\ --vimgrep\ --no-heading\ --smart-case\ --ignore-file\ .gitignore
 nnoremap <leader>d :Rg<cr>
 
@@ -81,9 +89,9 @@ command! VIMGREPCURRWORD :execute 'grep! '.expand('<cword>')
 nnoremap <leader>fw :VIMGREPCURRWORD<cr><cr>:copen<cr>
 
 " replace in current file 
-nnoremap <leader>rl :execute '%s/'.expand('<cword>').'//gc'<left><left><left><left>
+nnoremap <leader>rl :%s/<c-r><c-w>//gc<left><left><left>
 " replace globally
-nnoremap <leader>rg :VIMGREPCURRWORD<cr>:execute 'cfdo %s/'.expand('<cword>').'//gec'<left><left><left><left><left>
+nnoremap <leader>rg :VIMGREPCURRWORD<cr>:cfdo %s/<c-r><c-w>//gec'<left><left><left><left><left>
 
 "--- Buffers ---
 nnoremap <leader>b :Buffers<cr>
@@ -116,8 +124,8 @@ nnoremap <leader>co :copen<cr>
 nnoremap <leader>k :cf<cr>
 nnoremap <leader>K :cfirst<cr>
 nnoremap <leader>j :clast<cr>
-nnoremap <c-k> :cp<cr>
-nnoremap <c-j> :cn<cr>
+nnoremap <c-k> :cp<cr>zz
+nnoremap <c-j> :cn<cr>zz
 
 nnoremap <leader>tc :tabclose<cr>
 nnoremap <leader>to :tabnew<cr>

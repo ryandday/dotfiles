@@ -183,7 +183,7 @@ call plug#end()
 
 "--- vim-fugitive ---
 nnoremap <leader>gd :Gvdiffsplit<cr>
-nnoremap <leader>gs :G<cr>
+nnoremap <leader>gs :vertical G<cr>
 nnoremap <leader>ga :G add -A<cr>
 nnoremap <leader>gr :GRename<space>
 nnoremap <leader>gm :GMove<space>

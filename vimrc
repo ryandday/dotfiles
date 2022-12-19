@@ -34,7 +34,7 @@ set relativenumber
 " toggle line numbering
 nnoremap <leader>rr :set norelativenumber!<cr>:set nonumber!<cr>
 nnoremap <leader>z :source ~/.vimrc<cr> 
-nnoremap <leader>w :w<cr>
+nnoremap <leader>w :update<cr>
  
 "--- Backups ---
 set undofile

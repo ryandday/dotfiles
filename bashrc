@@ -36,11 +36,3 @@ ta() {
   tmux switch-client -t $selected_name
 }
 
-# Alias to execute filename of python file as module
-# so that I can still use autocomplete
-# It cuts the filename extension off and replaces "/" with "."
-pm(){
-    output=$(echo "$1" | sed -e "s/\//./g" -e "s/.py//g")
-    python3 -m $output
-}
-

@@ -1,5 +1,6 @@
 window:
-  startup_mode: Fullscreen
+  startup_mode: SimpleFullscreen
+  opacity: 0.9
 font:
   size: 14.0
 # Colors (Gruvbox dark)

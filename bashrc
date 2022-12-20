@@ -6,15 +6,14 @@ alias mux='pgrep -vx tmux > /dev/null && \
         tmux attach || tmux attach'
 
 alias cpuhogs='ps wwaxr -o pid,stat,%cpu,time,command | head -10'
+alias path='echo -e ${PATH//:/\\n}' # Echo PATH with newlines
 
 export FZF_DEFAULT_COMMAND='rg --files'
 export CLICOLOR=1
 export LSCOLORS=ExFxBxDxCxegedabagacad
 export REVIEW_BASE=main # Used in git aliases
 
-# Fzf switch branches
-alias gb="git branch -a -vv --color=always | grep -v '/HEAD\s' | fzf --height 100% --ansi --multi --tac | sed 's/^..//' | awk '{print $1}' | sed 's#^remotes/[^/]*/##' | xargs git checkout"
-
+# Used in tmux.conf to fuzzy find projects 
 ta() {
   if [[ -z $TMUX ]]; then
     echo "Run with tmux"
@@ -35,5 +34,13 @@ ta() {
   fi
 
   tmux switch-client -t $selected_name
+}
+
+# Alias to execute filename of python file as module
+# so that I can still use autocomplete
+# It cuts the filename extension off and replaces "/" with "."
+pm(){
+    output=$(echo "$1" | sed -e "s/\//./g" -e "s/.py//g")
+    python3 -m $output
 }
 

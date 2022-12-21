@@ -1,6 +1,8 @@
 PS1="%1~ %# "
 export CLICOLOR=1
 export LSCOLORS=ExGxBxDxCxEgEdxbxgxcxd
+export FZF_DEFAULT_COMMAND='rg --files'
+export REVIEW_BASE=main # Used in git aliases
 
 # Restore tmux
 alias mux='pgrep -vx tmux > /dev/null && \
@@ -9,11 +11,8 @@ alias mux='pgrep -vx tmux > /dev/null && \
   tmux kill-session -t delete-me && \
   tmux attach || tmux attach'
 
-alias cpuhogs='ps wwaxr -o pid,stat,%cpu,time,command | head -10'
+alias cpu='ps wwaxr -o pid,stat,%cpu,time,command | head -10'
 alias path='echo -e ${PATH//:/\\n}' # Echo PATH with newlines
-
-export FZF_DEFAULT_COMMAND='rg --files'
-export REVIEW_BASE=main # Used in git aliases
 
 source ~/.zsh_functions.zsh
 bindkey -s '^o' 'lfcd\n'
@@ -26,6 +25,8 @@ antidote load
 autoload -U +X compinit && compinit
 autoload -U +X bashcompinit && bashcompinit
 zstyle ':completion:*' menu select
+# match LSCOLORS
+zstyle ':completion:*' list-colors 'di=1;34:ln=1;36:so=1;31:pi=1;33:ex=1;32:bd=1;34;46:cd=1;34;43:su=0;41:sg=0;46:tw=0;42:ow=0;43'
 zmodload zsh/complist
 compinit
 _comp_options+=(globdots)		# Include hidden files.

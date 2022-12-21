@@ -1,6 +1,7 @@
 #!/bin/bash
 
 ln -s $PWD/zshrc $HOME/.zshrc
+ln -s $PWD/zsh_functions.zsh $HOME/.zsh_functions.zsh
 ln -s $PWD/zsh_plugins.txt $HOME/.zsh_plugins.txt
 ln -s $PWD/tmux.conf $HOME/.tmux.conf
 ln -s $PWD/vimrc $HOME/.vimrc

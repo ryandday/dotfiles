@@ -1,6 +1,7 @@
 #!/bin/bash
 
-ln -s $PWD/bashrc $HOME/.bashrc
+ln -s $PWD/zshrc $HOME/.zshrc
+ln -s $PWD/zsh_plugins.txt $HOME/.zsh_plugins.txt
 ln -s $PWD/tmux.conf $HOME/.tmux.conf
 ln -s $PWD/vimrc $HOME/.vimrc
 ln -s $PWD/alacritty.yml $HOME/.alacritty.yml

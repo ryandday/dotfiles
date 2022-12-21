@@ -1,3 +1,17 @@
+PS1="%1~ %# "
+
+# Display git branch on right hand prompt
+autoload -Uz vcs_info
+precmd_vcs_info() { vcs_info }
+precmd_functions+=( precmd_vcs_info )
+setopt prompt_subst
+RPROMPT=\$vcs_info_msg_0_
+zstyle ':vcs_info:git:*' formats '%F{240}( %b )'
+zstyle ':vcs_info:*' enable git
+
+setopt CORRECT
+setopt CORRECT_ALL
+
 # Restore tmux
 alias mux='pgrep -vx tmux > /dev/null && \
         tmux new -d -s delete-me && \
@@ -10,7 +24,6 @@ alias path='echo -e ${PATH//:/\\n}' # Echo PATH with newlines
 
 export FZF_DEFAULT_COMMAND='rg --files'
 export CLICOLOR=1
-export LSCOLORS=ExFxBxDxCxegedabagacad
 export REVIEW_BASE=main # Used in git aliases
 
 # Used in tmux.conf to fuzzy find projects 
@@ -35,4 +48,8 @@ ta() {
 
   tmux switch-client -t $selected_name
 }
+
+# Package manager (installed with brew)
+source /usr/local/opt/antidote/share/antidote/antidote.zsh
+antidote load
 

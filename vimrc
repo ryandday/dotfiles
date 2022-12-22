@@ -16,6 +16,8 @@ set undolevels=1000
 set modelines=0 " disable modelines, bc its a possible security risk
 set nomodeline
 set updatetime=50
+set visualbell
+set t_vb=
 
 let mapleader = " "
 " prevent leader key from inserting a space 

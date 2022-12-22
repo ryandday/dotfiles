@@ -14,6 +14,9 @@ alias mux='pgrep -vx tmux > /dev/null && \
 alias cpu='ps wwaxr -o pid,stat,%cpu,time,command | head -10'
 alias path='echo -e ${PATH//:/\\n}' # Echo PATH with newlines
 
+alias gb='git checkout $(git branch | fzf)'
+alias gbr='git checkout --track $(git branch -r | fzf)'
+
 source ~/.zsh_functions.zsh
 bindkey -s '^o' 'lfcd\n'
 
@@ -29,7 +32,7 @@ zstyle ':completion:*' menu select
 zstyle ':completion:*' list-colors 'di=1;34:ln=1;36:so=1;31:pi=1;33:ex=1;32:bd=1;34;46:cd=1;34;43:su=0;41:sg=0;46:tw=0;42:ow=0;43'
 zmodload zsh/complist
 compinit
-_comp_options+=(globdots)		# Include hidden files.
+_comp_options+=(globdots) # Include hidden files.
 
 # Use vim keys in tab complete menu:
 bindkey -M menuselect 'h' vi-backward-char

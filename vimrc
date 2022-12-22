@@ -190,6 +190,14 @@ nnoremap <leader>gp :G push<cr>
 nnoremap <leader>gb :G blame<cr>
 nnoremap <leader>gl :Gclog<cr>
 
+function! GitCheckoutBranch(branch)
+    let l:name = split(split(trim(a:branch), "", 1)[0], "/", 1)[-1]
+    execute "G checkout ".l:name
+endfunction
+
+command! -bang Gbranch call fzf#run(fzf#wrap({'source': 'git branch -avv --color', 'sink': function('GitCheckoutBranch'), 'options': '--ansi --nth=1'}, <bang>0))
+nnoremap <leader>gg :Gbranch<cr>
+
 "--- asynccomplete ---
 inoremap <expr> <tab>   pumvisible() ? "\<c-n>" : "\<tab>"
 inoremap <expr> <s-tab> pumvisible() ? "\<c-p>" : "\<s-tab>"

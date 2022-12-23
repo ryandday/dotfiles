@@ -18,6 +18,8 @@ set nomodeline
 set updatetime=50
 set visualbell
 set t_vb=
+set diffopt+=vertical
+
 
 let mapleader = " "
 " prevent leader key from inserting a space 

@@ -20,6 +20,12 @@ set visualbell
 set t_vb=
 set diffopt+=vertical
 
+" see :h xterm-true-colors
+if exists('+termguicolors')
+  let &t_8f="\<Esc>[38;2;%lu;%lu;%lum"
+  let &t_8b="\<Esc>[48;2;%lu;%lu;%lum"
+  set termguicolors
+endif
 
 let mapleader = " "
 " prevent leader key from inserting a space 

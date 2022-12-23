@@ -11,6 +11,15 @@ alias mux='pgrep -vx tmux > /dev/null && \
   tmux kill-session -t delete-me && \
   tmux attach || tmux attach'
 
+# If tmux isn't running, either attach to current session or restore
+if [[ -z $TMUX ]]; then
+  if [[ -n $(pgrep tmux) ]]; then
+    tmux attach
+  else
+    mux
+  fi
+fi
+
 alias cpu='ps wwaxr -o pid,stat,%cpu,time,command | head -10'
 alias path='echo -e ${PATH//:/\\n}' # Echo PATH with newlines
 

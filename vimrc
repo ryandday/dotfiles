@@ -42,8 +42,14 @@ nnoremap <leader>w :update<cr>
 set undofile
 set backup
 set noswapfile
+
 " set cached vim stuff in its own directory
-set undodir=~/.vim/.undo//
+if has("nvim")
+  set undodir=~/.vim/.undonvim//
+else
+  set undodir=~/.vim/.undo//
+endif
+
 set backupdir=~/.vim/.backup//
 set directory=~/.vim/.swp//
 

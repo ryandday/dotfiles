@@ -129,7 +129,7 @@ nnoremap <leader>j :clast<cr>
 nnoremap <c-k> :cp<cr>zz
 nnoremap <c-j> :cn<cr>zz
 
-nnoremap <leader>tc :tabclose<cr>
+nnoremap <leader>tl :tabclose<cr>
 nnoremap <leader>to :tabnew<cr>
 nnoremap ]t :tabnext<cr>
 nnoremap [t :tabprev<cr>

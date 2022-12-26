@@ -18,6 +18,7 @@ set nomodeline
 set updatetime=50
 set visualbell
 set t_vb=
+set noerrorbells
 set diffopt+=vertical
 
 " see :h xterm-true-color
@@ -33,6 +34,7 @@ nnoremap <space> <nop>
 
 set list
 set listchars=tab:>~ " Show tab characters as symbols
+set listchars+=trail:· " Show trailing whitespace as symbols
 set tabstop=2 " number of visual spaces per tab
 set shiftwidth=2 " '>' uses spaces
 set expandtab " insert spaces on tab
@@ -188,6 +190,7 @@ call plug#begin('~/.vim/plugged')
   Plug 'tpope/vim-dispatch'
   " Git
   Plug 'tpope/vim-fugitive'
+  Plug 'tpope/vim-rhubarb'
   Plug 'airblade/vim-gitgutter'
   " LSP features, linting and autocomplete 
   Plug 'dense-analysis/ale'

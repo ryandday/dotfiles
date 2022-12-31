@@ -192,6 +192,7 @@ call plug#begin('~/.vim/plugged')
   Plug 'tpope/vim-fugitive'
   Plug 'tpope/vim-rhubarb'
   Plug 'airblade/vim-gitgutter'
+  Plug 'rbong/vim-flog'
   " LSP features, linting and autocomplete 
   Plug 'dense-analysis/ale'
   Plug 'prabirshrestha/vim-lsp'

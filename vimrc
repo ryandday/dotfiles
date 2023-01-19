@@ -165,9 +165,7 @@ nnoremap <leader>th :find %:t:r.h<cr>
 
 command! BuildMake call s:buildMake()
 function! s:buildMake()
-  lcd build
-  Make -j 
-  lcd ..
+  Make -j -C build
 endfunction
 
 nnoremap <leader>m :BuildMake<cr><cr><cr>

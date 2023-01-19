@@ -11,7 +11,7 @@ alias mux='pgrep -vx tmux > /dev/null && \
   tmux kill-session -t delete-me && \
   tmux attach || tmux attach'
 
-# If tmux isn't running, either attach to current session or restore
+# If we are not in tmux, either attach to current session or restore
 if [[ -z $TMUX ]]; then
   if [[ -n $(pgrep tmux) ]]; then
     tmux attach
@@ -29,7 +29,7 @@ alias gbr='git checkout --track $(git branch -r | fzf)'
 source ~/.zsh_functions.zsh
 bindkey -s '^o' 'lfcd\n'
 
-# Package manager (location from brew installation)
+# Package manager (path from brew installation)
 source /usr/local/opt/antidote/share/antidote/antidote.zsh
 antidote load
 

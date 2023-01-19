@@ -25,6 +25,7 @@ alias path='echo -e ${PATH//:/\\n}' # Echo PATH with newlines
 
 alias gb='git checkout $(git branch | fzf)'
 alias gbr='git checkout --track $(git branch -r | fzf)'
+alias gcha='git log --pretty=format: --name-only | sort | uniq -c | sort -rg | head -15'
 
 source ~/.zsh_functions.zsh
 bindkey -s '^o' 'lfcd\n'

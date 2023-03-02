@@ -169,6 +169,17 @@ function! s:buildMake()
 endfunction
 
 nnoremap <leader>m :BuildMake<cr><cr><cr>
+
+command! RunTests call s:runTests()
+function! s:runTests()
+  if fnamemodify(getcwd(), ':t') != "build"
+    cd build
+  endif
+  Dispatch ctest -VV 
+  cd ..
+endfunction
+
+nnoremap <leader>tt :RunTests<cr><cr><cr>
 let g:termdebug_wide=1
 
 "--- Plugins ---

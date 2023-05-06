@@ -109,7 +109,7 @@ nnoremap <leader>fw :VIMGREPCURRWORD<cr><cr>:copen<cr>
 " replace in current file 
 nnoremap <leader>rl :%s/<c-r><c-w>//gc<left><left><left>
 " replace globally
-nnoremap <leader>rg :VIMGREPCURRWORD<cr>:cfdo %s/<c-r><c-w>//gec'<left><left><left><left><left>
+nnoremap <leader>rg :VIMGREPCURRWORD<cr>:cfdo %s/<c-r><c-w>//gec<left><left><left><left>
 
 "--- Buffers ---
 nnoremap <leader>b :Buffers<cr>

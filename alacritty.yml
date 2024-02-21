@@ -1,6 +1,6 @@
 window:
   startup_mode: SimpleFullscreen 
-  opacity: 0.9
+  opacity: 1.0 
   decorations: none
 font:
   size: 14.0

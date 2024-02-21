@@ -234,8 +234,8 @@ inoremap <expr> <cr>    pumvisible() ? asyncomplete#close_popup() : "\<cr>"
 colorscheme gruvbox
 set bg=dark
 " Settings to help with transparent background
-let g:gruvbox_transparent_bg = 1
-hi! Normal guibg=NONE ctermbg=NONE
+" let g:gruvbox_transparent_bg = 1
+" hi! Normal guibg=NONE ctermbg=NONE
 
 "--- ale ---
 nmap ]g :ALENext<cr>

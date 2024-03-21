@@ -3,6 +3,7 @@ export CLICOLOR=1
 export LSCOLORS=ExGxBxDxCxEgEdxbxgxcxd
 export FZF_DEFAULT_COMMAND='rg --files'
 export REVIEW_BASE=main # Used in git aliases
+export PATH="/opt/homebrew/bin/:$PATH"
 
 # Restore tmux
 alias mux='pgrep -vx tmux > /dev/null && \
@@ -31,7 +32,7 @@ source ~/.zsh_functions.zsh
 bindkey -s '^o' 'lfcd\n'
 
 # Package manager (path from brew installation)
-source /usr/local/opt/antidote/share/antidote/antidote.zsh
+source /opt/homebrew/opt/antidote/share/antidote/antidote.zsh
 antidote load
 
 # Set up zsh completion after loading packages

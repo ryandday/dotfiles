@@ -54,14 +54,17 @@ set backup
 set noswapfile
 
 " set cached vim stuff in its own directory
+set backupdir=~/.vim/.backup//
+set directory=~/.vim/.swp//
+
+" neovim has different undo format, so separate the folders
+" so that vim doesn't get confused
 if has("nvim")
   set undodir=~/.vim/.undonvim//
 else
   set undodir=~/.vim/.undo//
 endif
 
-set backupdir=~/.vim/.backup//
-set directory=~/.vim/.swp//
 
 "--- Copy and Paste ---
 " use system clipboard as default copy buffer
@@ -157,6 +160,7 @@ let g:netrw_list_hide = '\(^\|\s\s\)\zs\.\S\+' " hide dotfiles in netrw - turn b
 
 nnoremap <leader>E :E .<cr>
 
+" Make netrw highlight the previously active directory / file
 function! NetrwUpDirectory()
   if &filetype == 'netrw'
     let l:current_dir = expand('%:p:h')

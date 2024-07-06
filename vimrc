@@ -208,6 +208,7 @@ call plug#begin('~/.vim/plugged')
   Plug 'mattn/vim-lsp-settings'
   Plug 'prabirshrestha/asyncomplete.vim'
   Plug 'prabirshrestha/asyncomplete-lsp.vim'
+  Plug 'wellle/context.vim'
 call plug#end()
 
 "--- vim-fugitive ---

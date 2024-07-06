@@ -173,10 +173,15 @@ endfunction
 
 nnoremap - :call NetrwUpDirectory()<CR>
 
+"--- Python ---
+autocmd FileType python setlocal shiftwidth=4 tabstop=4 expandtab
+
 "--- Cpp --- 
 " switch between header and cpp files 
 nnoremap <leader>tp :find %:t:r.cpp<cr>
 nnoremap <leader>th :find %:t:r.h<cr>
+
+autocmd FileType cpp setlocal shiftwidth=2 tabstop=2 expandtab
 
 command! BuildMake call s:buildMake()
 function! s:buildMake()

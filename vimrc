@@ -154,9 +154,24 @@ nnoremap [t :tabprev<cr>
 let g:netrw_banner=0
 let g:netrw_bufsettings = 'noma nomod nu nobl nowrap ro' " set line numbers in netrw
 let g:netrw_list_hide = '\(^\|\s\s\)\zs\.\S\+' " hide dotfiles in netrw - turn back on with gh
-let g:netrw_fastbrowse=0 " turn off persistent hidden buffer behavior
-nnoremap - :E<cr>
+
 nnoremap <leader>E :E .<cr>
+
+function! NetrwUpDirectory()
+  if &filetype == 'netrw'
+    let l:current_dir = expand('%:p:h')
+    let l:parent_dir = fnamemodify(l:current_dir, ':h')
+    execute 'Explore ' . fnameescape(l:parent_dir)
+    call search(fnamemodify(l:current_dir, ':t'), 'w')
+  else
+    let l:file_name = expand('%:t')
+    let l:file_dir = expand('%:p:h')
+    execute 'Explore ' . fnameescape(l:file_dir)
+    call search('\V' . escape(l:file_name, '\'))
+  endif
+endfunction
+
+nnoremap - :call NetrwUpDirectory()<CR>
 
 "--- Cpp --- 
 " switch between header and cpp files 

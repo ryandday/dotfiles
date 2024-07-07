@@ -182,8 +182,18 @@ autocmd FileType python setlocal shiftwidth=4 tabstop=4 expandtab
 
 "--- Cpp --- 
 " switch between header and cpp files 
-nnoremap <leader>tp :find %:t:r.cpp<cr>
-nnoremap <leader>th :find %:t:r.h<cr>
+function! FindOrOpen(file)
+  let bufnum = bufnr(a:file)
+
+  if bufnum != -1
+    execute 'buffer' bufnum
+  else
+    execute 'find' a:file
+  endif
+endfunction
+
+nnoremap <leader>tp :call FindOrOpen(expand('%:t:r') . '.cpp')<cr>
+nnoremap <leader>th :call FindOrOpen(expand('%:t:r') . '.h')<cr>
 
 autocmd FileType cpp setlocal shiftwidth=2 tabstop=2 expandtab
 

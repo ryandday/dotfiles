@@ -21,6 +21,7 @@ if [[ -z $TMUX ]]; then
   fi
 fi
 
+alias ls='ls --color=auto'
 alias cpu='ps wwaxr -o pid,stat,%cpu,time,command | head -10'
 alias path='echo -e ${PATH//:/\\n}' # Echo PATH with newlines
 

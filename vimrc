@@ -251,6 +251,8 @@ nnoremap <leader>gs :G<cr>
 nnoremap <leader>gp :G push<cr>
 nnoremap <leader>gb :G blame<cr>
 nnoremap <leader>gl :Gclog<cr>
+nnoremap <leader>gf :Flogsplit -path=%<cr>
+vnoremap <leader>gf :Flog<cr>
 
 function! GitCheckoutBranch(branch)
     let l:name = split(split(trim(a:branch), "", 1)[0], "/", 1)[-1]

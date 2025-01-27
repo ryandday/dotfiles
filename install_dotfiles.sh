@@ -5,7 +5,10 @@ ln -fs $PWD/zsh_functions.zsh $HOME/.zsh_functions.zsh
 ln -fs $PWD/zsh_plugins.txt $HOME/.zsh_plugins.txt
 ln -fs $PWD/tmux.conf $HOME/.tmux.conf
 ln -fs $PWD/vimrc $HOME/.vimrc
-ln -fs $PWD/alacritty.toml $HOME/.alacritty.toml
+mkdir -p $HOME/.config/kitty
+ln -fs $PWD/kitty.conf $HOME/.config/kitty/kitty.conf
+# install kitty theme
+curl -L -o ~/.config/kitty/gruvbox_dark.conf https://github.com/wdomitrz/kitty_gruvbox_theme/raw/master/gruvbox_dark.conf
 # install vim package manager
 curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
     https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim

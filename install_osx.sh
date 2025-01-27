@@ -10,4 +10,4 @@ brew install fzf
 brew install rg
 brew install antidote
 brew install lf
-brew install --cask alacritty # System Preferences - Security and Privacy - General - Open Anyway
+brew install kitty

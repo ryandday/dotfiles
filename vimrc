@@ -243,6 +243,7 @@ call plug#begin('~/.vim/plugged')
   Plug 'prabirshrestha/asyncomplete.vim'
   Plug 'prabirshrestha/asyncomplete-lsp.vim'
   Plug 'wellle/context.vim'
+  Plug 'epheien/termdbg' " for lldb
 call plug#end()
 
 "--- vim-fugitive ---
@@ -273,6 +274,12 @@ set bg=dark
 " Settings to help with transparent background
 " let g:gruvbox_transparent_bg = 1
 " hi! Normal guibg=NONE ctermbg=NONE
+
+"---termdbg ---
+nnoremap <F9> :TToggleBreak<cr>
+nnoremap <F7> :TNext<cr>
+nnoremap <F8> :TStep<cr>
+nnoremap <F5> :TContinue<cr>
 
 "--- ale ---
 nmap ]g :ALENext<cr>

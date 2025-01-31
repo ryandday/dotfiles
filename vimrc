@@ -242,6 +242,7 @@ call plug#begin('~/.vim/plugged')
   Plug 'mattn/vim-lsp-settings'
   Plug 'prabirshrestha/asyncomplete.vim'
   Plug 'prabirshrestha/asyncomplete-lsp.vim'
+  Plug 'm-pilia/vim-ccls'
   Plug 'wellle/context.vim'
   Plug 'epheien/termdbg' " for lldb
 call plug#end()
@@ -290,9 +291,9 @@ let g:lsp_diagnostics_enabled = 0 " Let Ale do diagnostics
 
 if executable('clangd')
     au User lsp_setup call lsp#register_server({
-        \ 'name': 'clangd',
-        \ 'cmd': {server_info->['clangd']},
-        \ 'allowlist': ['.c', '.cpp'],
+        \ 'name': 'ccls',
+        \ 'cmd': {server_info->['ccls']},
+        \ 'allowlist': ['.c', '.cc', '.cpp'],
         \ })
 endif
 

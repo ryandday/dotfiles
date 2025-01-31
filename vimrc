@@ -69,8 +69,8 @@ endif
 "--- Copy and Paste ---
 " use system clipboard as default copy buffer
 set clipboard^=unnamed,unnamedplus
-" yank relative path
-nnoremap <leader>yf :let @+=expand("%")<cr>
+" yank relative path + line number
+nnoremap <leader>yf :let @+=expand("%") . ':' . line('.')<CR>
 " yank absolute path
 nnoremap <leader>ya :let @+=expand("%:p")<cr>
 " yank filename
@@ -275,7 +275,7 @@ set bg=dark
 " let g:gruvbox_transparent_bg = 1
 " hi! Normal guibg=NONE ctermbg=NONE
 
-"---termdbg ---
+"--- termdbg ---
 nnoremap <F9> :TToggleBreak<cr>
 nnoremap <F7> :TNext<cr>
 nnoremap <F8> :TStep<cr>

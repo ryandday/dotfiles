@@ -24,3 +24,7 @@ Icon
 Network Trash Folder
 Temporary Items
 .apdisk
+
+# common stuff that won't be in repo specific ones
+.ccls-cache/
+.cache/

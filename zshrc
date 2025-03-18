@@ -33,7 +33,11 @@ source ~/.zsh_functions.zsh
 bindkey -s '^o' 'lfcd\n'
 
 # Package manager (path from brew installation)
-source /opt/homebrew/opt/antidote/share/antidote/antidote.zsh
+if [[ "$(uname -s)" == "Darwin" ]]; then
+  source /opt/homebrew/opt/antidote/share/antidote/antidote.zsh
+elif [[ -f /etc/lsb-release ]] && grep -q "Ubuntu" /etc/lsb-release; then
+  source /usr/share/zsh-antidote/antidote.zsh
+fi
 antidote load
 
 # Set up zsh completion after loading packages

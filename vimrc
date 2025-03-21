@@ -289,7 +289,7 @@ nmap [g :ALEPrevious<cr>
 "--- vim-lsp ---
 let g:lsp_diagnostics_enabled = 0 " Let Ale do diagnostics
 
-if executable('clangd')
+if executable('ccls')
     au User lsp_setup call lsp#register_server({
         \ 'name': 'ccls',
         \ 'cmd': {server_info->['ccls']},

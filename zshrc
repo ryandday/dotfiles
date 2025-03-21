@@ -3,7 +3,10 @@ export CLICOLOR=1
 export LSCOLORS=ExGxBxDxCxEgEdxbxgxcxd
 export FZF_DEFAULT_COMMAND='rg --files'
 export REVIEW_BASE=main # Used in git aliases
-export PATH="/opt/homebrew/bin/:$PATH"
+
+if [[ $(uname -s) == "Darwin" ]]; then
+  export PATH="/opt/homebrew/bin/:$PATH"
+fi
 
 # Restore tmux
 alias mux='pgrep -vx tmux > /dev/null && \
@@ -38,6 +41,7 @@ if [[ "$(uname -s)" == "Darwin" ]]; then
 elif [[ -f /etc/lsb-release ]] && grep -q "Ubuntu" /etc/lsb-release; then
   source /usr/share/zsh-antidote/antidote.zsh
 fi
+
 antidote load
 
 # Set up zsh completion after loading packages

@@ -286,6 +286,10 @@ nnoremap <F5> :TContinue<cr>
 nmap ]g :ALENext<cr>
 nmap [g :ALEPrevious<cr>
 
+"-- fzf --
+" Allow scrolling when previewing
+let $FZF_DEFAULT_OPTS="--bind ctrl-u:preview-half-page-up,ctrl-d:preview-half-page-down,ctrl-y:preview-up,ctrl-e:preview-down,"
+
 "--- vim-lsp ---
 let g:lsp_diagnostics_enabled = 0 " Let Ale do diagnostics
 

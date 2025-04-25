@@ -15,12 +15,15 @@ alias mux='pgrep -vx tmux > /dev/null && \
   tmux kill-session -t delete-me && \
   tmux attach || tmux attach'
 
-# If we are not in tmux, either attach to current session or restore
-if [[ -z $TMUX ]]; then
-  if [[ -n $(pgrep tmux) ]]; then
-    tmux attach
-  else
-    mux
+# Only attach to tmux if we are not in a vscode terminal
+if [[ "$TERM_PROGRAM" != "vscode" ]]; then
+  # If we are not in tmux, either attach to current session or restore
+  if [[ -z $TMUX ]]; then
+    if [[ -n $(pgrep tmux) ]]; then
+      tmux attach
+    else
+      tmux
+    fi
   fi
 fi
 

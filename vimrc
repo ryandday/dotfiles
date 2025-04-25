@@ -236,6 +236,9 @@ call plug#begin('~/.vim/plugged')
   Plug 'tpope/vim-rhubarb'
   Plug 'airblade/vim-gitgutter'
   Plug 'rbong/vim-flog'
+  " File explorer
+  Plug 'preservim/nerdtree'
+  Plug 'PhilRunninger/nerdtree-buffer-ops'
   " LSP features, linting and autocomplete 
   Plug 'dense-analysis/ale'
   Plug 'prabirshrestha/vim-lsp'

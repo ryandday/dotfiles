@@ -12,3 +12,7 @@
     llog = log --graph --name-status --pretty=format:\"%C(red)%h %C(reset)(%cd) %C(green)%an %Creset%s %C(yellow)%d%Creset\" --date=relative
     # Remove branches that have already been merged with current branch. 
     dm = "!git branch --merged | grep -v '\\*' | xargs -n 1 git branch -d"
+[submodule]
+	recurse = true
+[fetch]
+	parallel = 8

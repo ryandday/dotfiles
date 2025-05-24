@@ -52,7 +52,7 @@ keymap('n', '<leader>rg', function()
 end)
 
 -- Buffer mappings
-keymap('n', '<leader>x', ':bd!<cr>')
+-- keymap('n', '<leader>x', ':bd!<cr>')
 
 -- Location list mappings
 keymap('n', '<leader>lc', ':lclose<cr>')

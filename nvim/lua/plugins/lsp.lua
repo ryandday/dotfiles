@@ -84,7 +84,9 @@ return {
           cache = {
             directory = vim.fn.expand('~/.cache/clangd')
           }
-        }
+        },
+        -- Fix offset encoding to prevent multiple client encoding warnings
+        offset_encoding = "utf-8",
       })
 
       -- Python setup

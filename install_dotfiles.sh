@@ -13,9 +13,6 @@ mkdir -p $HOME/.config/kitty
 ln -fs $PWD/kitty.conf $HOME/.config/kitty/kitty.conf
 # install kitty theme
 curl -L -o ~/.config/kitty/gruvbox_dark.conf https://github.com/wdomitrz/kitty_gruvbox_theme/raw/master/gruvbox_dark.conf
-# install vim package manager
-curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
-    https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 # install tmux plugin manager
 git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 mkdir -p ~/.vim/.undo

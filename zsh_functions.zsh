@@ -31,3 +31,75 @@ lfcd () {
         [ -d "$dir" ] && [ "$dir" != "$(pwd)" ] && cd "$dir"
     fi
 }
+
+# Command execution time tracking
+preexec() {
+    timer=$(date +%s%N)
+}
+
+precmd() {
+    vcs_info  # Keep existing vcs_info call
+    
+    if [ $timer ]; then
+        local now=$(date +%s%N)
+        local elapsed=$(((now-timer)/1000000))
+        
+        if [ $elapsed -gt 1000 ]; then
+            export RPS1="%F{yellow}⚡${elapsed}ms%f %F{240}%n@%m%f"
+        else
+            export RPS1='%F{240}%n@%m%f'
+        fi
+        unset timer
+    fi
+}
+
+# Quick directory navigation
+..() {
+    cd ..
+}
+
+...() {
+    cd ../..
+}
+
+....() {
+    cd ../../..
+}
+
+# Enhanced ls with icons (if you have exa/eza installed)
+if command -v eza &> /dev/null; then
+    alias ls='eza --icons --group-directories-first'
+    alias ll='eza -la --icons --group-directories-first'
+    alias lt='eza --tree --level=2 --icons'
+elif command -v exa &> /dev/null; then
+    alias ls='exa --icons --group-directories-first'
+    alias ll='exa -la --icons --group-directories-first'
+    alias lt='exa --tree --level=2 --icons'
+fi
+
+# Better cat with syntax highlighting
+if command -v bat &> /dev/null; then
+    alias cat='bat --paging=never'
+    alias bcat='bat'  # Keep original bat command available
+fi
+
+# Modern find replacement  
+if command -v fd &> /dev/null; then
+    alias find='fd'
+    alias oldfind='command find'  # Keep original find available
+fi
+
+# Better top replacement
+if command -v btop &> /dev/null; then
+    alias top='btop'
+    alias htop='btop'
+fi
+
+# Git enhanced functions
+gst() {
+    git status --short --branch
+}
+
+glog() {
+    git log --oneline --graph --decorate --all -10
+}

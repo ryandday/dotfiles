@@ -39,6 +39,22 @@ return {
       "mason.nvim",
       "mason-lspconfig.nvim",
     },
+    keys = {
+      { "gd", "<cmd>lua vim.lsp.buf.definition()<cr>", desc = "Go to Definition" },
+      { "gs", "<cmd>lua vim.lsp.buf.document_symbol()<cr>", desc = "Document Symbols" },
+      { "gS", "<cmd>lua vim.lsp.buf.workspace_symbol()<cr>", desc = "Workspace Symbols" },
+      { "gr", "<cmd>lua vim.lsp.buf.references()<cr>", desc = "References" },
+      { "gt", "<cmd>lua vim.lsp.buf.type_definition()<cr>", desc = "Type Definition" },
+      { "<leader>rn", "<cmd>lua vim.lsp.buf.rename()<cr>", desc = "Rename" },
+      { "K", "<cmd>lua vim.lsp.buf.hover()<cr>", desc = "Hover" },
+      { "<leader>ca", "<cmd>lua vim.lsp.buf.code_action()<cr>", desc = "Code Action" },
+      { "<leader>f", "<cmd>lua vim.lsp.buf.format({ async = true })<cr>", desc = "Format" },
+      { "<leader>ch", "<cmd>lua vim.lsp.buf.incoming_calls()<cr>", desc = "Incoming Calls" },
+      { "<leader>cH", "<cmd>lua vim.lsp.buf.outgoing_calls()<cr>", desc = "Outgoing Calls" },
+      { "]g", "<cmd>lua vim.diagnostic.goto_next()<cr>", desc = "Next Diagnostic" },
+      { "[g", "<cmd>lua vim.diagnostic.goto_prev()<cr>", desc = "Previous Diagnostic" },
+      -- { "<leader>e", "<cmd>lua vim.diagnostic.open_float()<cr>", desc = "Show Diagnostic" },
+    },
     config = function()
       local lspconfig = require('lspconfig')
       local capabilities = require('cmp_nvim_lsp').default_capabilities()

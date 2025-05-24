@@ -28,7 +28,14 @@ return {
         { "<leader>B", dap.toggle_breakpoint, desc = "Debug: Toggle Breakpoint" },
         -- { "<leader>B", function()
         --   dap.set_breakpoint(vim.fn.input 'Breakpoint condition: ')
-        end, desc = "Debug: Set Breakpoint" },
+        -- end, desc = "Debug: Set Breakpoint" },
+        -- Debugging mappings (termdbg)
+        -- If I use termdbg again, I will use these mappings
+        -- NOTE: These F-key mappings may conflict with DAP debugging setup
+        -- keymap('n', '<F9>', ':TToggleBreak<cr>')
+        -- keymap('n', '<F7>', ':TNext<cr>')
+        -- keymap('n', '<F8>', ':TStep<cr>')
+        -- keymap('n', '<F5>', ':TContinue<cr>') 
         
         -- Toggle to see last session result. Without this, you can't see session output in case of unhandled exception.
         { "<F7>", dapui.toggle, desc = "Debug: See last session result." },
@@ -147,10 +154,6 @@ return {
           cwd = '${workspaceFolder}'
         },
       }
-
-      -- If you want to use this for Rust and C, add something like this:
-      dap.configurations.c = dap.configurations.cpp
-      dap.configurations.rust = dap.configurations.cpp
-    end,
-  },
-} 
+    end
+  }
+}

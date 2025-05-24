@@ -55,7 +55,6 @@ return {
       { "<leader>fg", "<cmd>Telescope live_grep<cr>", desc = "Live Grep" },
       { "<leader>fb", "<cmd>Telescope buffers<cr>", desc = "Buffers" },
       { "<leader>fh", "<cmd>Telescope help_tags<cr>", desc = "Help Tags" },
-      { "<leader>fr", "<cmd>Telescope oldfiles<cr>", desc = "Recent Files" },
       -- LSP related
       { "<leader>fd", "<cmd>Telescope diagnostics<cr>", desc = "Diagnostics" },
       { "<leader>fs", "<cmd>Telescope lsp_document_symbols<cr>", desc = "Document Symbols" },
@@ -91,6 +90,14 @@ return {
   {
     "junegunn/fzf.vim",
     dependencies = { "junegunn/fzf" },
+    keys = {
+      { "<leader>d", "<cmd>Rg<cr>", desc = "Ripgrep Search" },
+      { "<leader>fn", ":grep! \"\" <left><left>", desc = "Grep Pattern" },
+      { "<leader>fw", function()
+        vim.cmd('grep! ' .. vim.fn.expand('<cword>'))
+        vim.cmd('copen')
+      end, desc = "Search Current Word" },
+    },
     config = function()
       -- FZF default options (keeping your existing config)
       vim.env.FZF_DEFAULT_OPTS = "--bind ctrl-u:preview-half-page-up,ctrl-d:preview-half-page-down,ctrl-y:preview-up,ctrl-e:preview-down,ctrl-b:page-up,ctrl-f:page-down"

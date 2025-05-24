@@ -17,6 +17,58 @@ local data = {
   recent_sets = {},
 }
 
+-- Add helper function to use telescope if available
+local function enhanced_select(items, opts, on_choice)
+  -- Try to use telescope if available for better navigation
+  local has_telescope, telescope = pcall(require, 'telescope.pickers')
+  local has_finders, finders = pcall(require, 'telescope.finders')
+  local has_conf, conf = pcall(require, 'telescope.config')
+  local has_actions, actions = pcall(require, 'telescope.actions')
+  local has_action_state, action_state = pcall(require, 'telescope.actions.state')
+  
+  if has_telescope and has_finders and has_conf and has_actions and has_action_state then
+    telescope.new(opts.telescope_opts or {}, {
+      prompt_title = opts.prompt or "Select",
+      finder = finders.new_table {
+        results = items,
+        entry_maker = function(entry)
+          return {
+            value = entry,
+            display = opts.format_item and opts.format_item(entry) or tostring(entry),
+            ordinal = opts.format_item and opts.format_item(entry) or tostring(entry),
+          }
+        end,
+      },
+      sorter = conf.values.generic_sorter(opts.telescope_opts or {}),
+      attach_mappings = function(prompt_bufnr, map)
+        actions.select_default:replace(function()
+          local selection = action_state.get_selected_entry()
+          actions.close(prompt_bufnr)
+          if selection then
+            for i, item in ipairs(items) do
+              if item == selection.value then
+                on_choice(item, i)
+                return
+              end
+            end
+          end
+        end)
+        
+        -- Enable Ctrl+j/Ctrl+k navigation
+        map('i', '<C-j>', actions.move_selection_next)
+        map('i', '<C-k>', actions.move_selection_previous)
+        map('n', '<C-j>', actions.move_selection_next)
+        map('n', '<C-k>', actions.move_selection_previous)
+        
+        return true
+      end,
+    }):find()
+  else
+    -- Fallback to vim.ui.select
+    vim.ui.select(items, opts, on_choice)
+  end
+end
+
 -- Helper function to ensure data structure
 local function ensure_data_structure()
   if not data.sets then
@@ -243,11 +295,14 @@ function M.find_bookmark()
     table.insert(items, format_bookmark(bookmark, i))
   end
   
-  vim.ui.select(items, {
+  enhanced_select(items, {
     prompt = "Select bookmark (set: " .. data.current_set .. "):",
     format_item = function(item)
       return item
     end,
+    telescope_opts = {
+      layout_config = { width = 0.8, height = 0.6 }
+    }
   }, function(choice, idx)
     if choice and idx then
       local bookmark = current_set.bookmarks[idx]
@@ -273,11 +328,14 @@ function M.delete_bookmark()
     table.insert(items, format_bookmark(bookmark, i))
   end
   
-  vim.ui.select(items, {
+  enhanced_select(items, {
     prompt = "Delete bookmark from set '" .. data.current_set .. "':",
     format_item = function(item)
       return item
     end,
+    telescope_opts = {
+      layout_config = { width = 0.8, height = 0.6 }
+    }
   }, function(choice, idx)
     if choice and idx then
       local bookmark = current_set.bookmarks[idx]
@@ -405,11 +463,14 @@ function M.switch_set()
     table.insert(items, item)
   end
   
-  vim.ui.select(items, {
+  enhanced_select(items, {
     prompt = "Switch to set:",
     format_item = function(item)
       return item
     end,
+    telescope_opts = {
+      layout_config = { width = 0.6, height = 0.5 }
+    }
   }, function(choice, idx)
     if choice and idx then
       local selected_set = set_names[idx]
@@ -439,12 +500,15 @@ function M.delete_set()
   
   table.sort(set_names)
   
-  vim.ui.select(set_names, {
+  enhanced_select(set_names, {
     prompt = "Delete set:",
     format_item = function(item)
       local bookmark_count = #data.sets[item].bookmarks
       return string.format("%s [%d bookmarks]", item, bookmark_count)
     end,
+    telescope_opts = {
+      layout_config = { width = 0.6, height = 0.5 }
+    }
   }, function(choice, idx)
     if choice and idx then
       local set_to_delete = set_names[idx]
@@ -536,41 +600,95 @@ function M.setup(user_config)
   
   load_data()
   
-  -- Set up keymaps
-  local opts = { noremap = true, silent = true }
+  -- Set up keymaps with descriptions
+  vim.keymap.set("n", "<leader>ba", M.add_bookmark, { 
+    noremap = true, 
+    silent = true, 
+    desc = "Bookmark: Add bookmark to current set" 
+  })
   
-  vim.keymap.set("n", "<leader>ba", M.add_bookmark, opts) -- Add bookmark
-  vim.keymap.set("n", "<leader>bf", M.find_bookmark, opts) -- Find bookmark
-  vim.keymap.set("n", "<leader>bd", M.delete_bookmark, opts) -- Delete bookmark
-  vim.keymap.set("n", "<leader>bc", M.create_set, opts) -- Create set
-  vim.keymap.set("n", "<leader>br", M.rename_set, opts) -- Rename set
-  vim.keymap.set("n", "<leader>bs", M.switch_set, opts) -- Switch set
-  vim.keymap.set("n", "<leader>bx", M.delete_set, opts) -- Delete set (eXterminate)
-  vim.keymap.set("n", "<leader>bi", M.show_set_info, opts) -- Info about current set
-  vim.keymap.set("n", "<leader>bC", M.cleanup_all_sets, opts) -- Cleanup all sets
+  vim.keymap.set("n", "<leader>bf", M.find_bookmark, { 
+    noremap = true, 
+    silent = true, 
+    desc = "Bookmark: Find and jump to bookmark (fuzzy search)" 
+  })
+  
+  vim.keymap.set("n", "<leader>bb", M.find_bookmark, { 
+    noremap = true, 
+    silent = true, 
+    desc = "Bookmark: Find and jump to bookmark (fuzzy search)" 
+  })
+  
+  vim.keymap.set("n", "<leader>bd", M.delete_bookmark, { 
+    noremap = true, 
+    silent = true, 
+    desc = "Bookmark: Delete bookmark from current set" 
+  })
+  
+  vim.keymap.set("n", "<leader>bc", M.create_set, { 
+    noremap = true, 
+    silent = true, 
+    desc = "Bookmark: Create new bookmark set" 
+  })
+  
+  vim.keymap.set("n", "<leader>br", M.rename_set, { 
+    noremap = true, 
+    silent = true, 
+    desc = "Bookmark: Rename current bookmark set" 
+  })
+  
+  vim.keymap.set("n", "<leader>bs", M.switch_set, { 
+    noremap = true, 
+    silent = true, 
+    desc = "Bookmark: Switch to different bookmark set" 
+  })
+  
+  vim.keymap.set("n", "<leader>bx", M.delete_set, { 
+    noremap = true, 
+    silent = true, 
+    desc = "Bookmark: Delete (eXterminate) bookmark set" 
+  })
+  
+  vim.keymap.set("n", "<leader>bi", M.show_set_info, { 
+    noremap = true, 
+    silent = true, 
+    desc = "Bookmark: Show current set info and list bookmarks" 
+  })
+  
+  vim.keymap.set("n", "<leader>bC", M.cleanup_all_sets, { 
+    noremap = true, 
+    silent = true, 
+    desc = "Bookmark: Cleanup non-existent files from all sets" 
+  })
   
   -- Set up numbered jumps (1-9) if enabled
   if config.enable_numbered_jumps then
     for i = 1, 9 do
-      vim.keymap.set("n", "<leader>b" .. i, function() M.jump_to_bookmark(i) end, opts)
+      vim.keymap.set("n", "<leader>b" .. i, function() M.jump_to_bookmark(i) end, { 
+        noremap = true, 
+        silent = true, 
+        desc = "Bookmark: Jump to bookmark #" .. i .. " in current set" 
+      })
     end
   end
   
   -- Create commands
-  vim.api.nvim_create_user_command("BookmarkAdd", M.add_bookmark, {})
-  vim.api.nvim_create_user_command("BookmarkFind", M.find_bookmark, {})
-  vim.api.nvim_create_user_command("BookmarkDelete", M.delete_bookmark, {})
-  vim.api.nvim_create_user_command("BookmarkSetCreate", M.create_set, {})
-  vim.api.nvim_create_user_command("BookmarkSetRename", M.rename_set, {})
-  vim.api.nvim_create_user_command("BookmarkSetSwitch", M.switch_set, {})
-  vim.api.nvim_create_user_command("BookmarkSetDelete", M.delete_set, {})
-  vim.api.nvim_create_user_command("BookmarkSetInfo", M.show_set_info, {})
-  vim.api.nvim_create_user_command("BookmarkCleanup", M.cleanup_all_sets, {})
+  vim.api.nvim_create_user_command("BookmarkAdd", M.add_bookmark, { desc = "Add bookmark to current set" })
+  vim.api.nvim_create_user_command("BookmarkFind", M.find_bookmark, { desc = "Find and jump to bookmark" })
+  vim.api.nvim_create_user_command("BookmarkDelete", M.delete_bookmark, { desc = "Delete bookmark from current set" })
+  vim.api.nvim_create_user_command("BookmarkSetCreate", M.create_set, { desc = "Create new bookmark set" })
+  vim.api.nvim_create_user_command("BookmarkSetRename", M.rename_set, { desc = "Rename current bookmark set" })
+  vim.api.nvim_create_user_command("BookmarkSetSwitch", M.switch_set, { desc = "Switch to different bookmark set" })
+  vim.api.nvim_create_user_command("BookmarkSetDelete", M.delete_set, { desc = "Delete bookmark set" })
+  vim.api.nvim_create_user_command("BookmarkSetInfo", M.show_set_info, { desc = "Show current set info" })
+  vim.api.nvim_create_user_command("BookmarkCleanup", M.cleanup_all_sets, { desc = "Cleanup non-existent files from all sets" })
   
   -- Create numbered jump commands if enabled
   if config.enable_numbered_jumps then
     for i = 1, 9 do
-      vim.api.nvim_create_user_command("BookmarkJump" .. i, function() M.jump_to_bookmark(i) end, {})
+      vim.api.nvim_create_user_command("BookmarkJump" .. i, function() M.jump_to_bookmark(i) end, { 
+        desc = "Jump to bookmark #" .. i .. " in current set" 
+      })
     end
   end
 end

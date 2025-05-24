@@ -38,6 +38,7 @@ return {
     dependencies = {
       "mason.nvim",
       "mason-lspconfig.nvim",
+      "nvim-navic",
     },
     keys = {
       { "gd", "<cmd>lua vim.lsp.buf.definition()<cr>", desc = "Go to Definition" },
@@ -58,10 +59,19 @@ return {
     config = function()
       local lspconfig = require('lspconfig')
       local capabilities = require('cmp_nvim_lsp').default_capabilities()
+      local navic = require("nvim-navic")
+
+      -- Common on_attach function to setup navic
+      local on_attach = function(client, bufnr)
+        if client.server_capabilities.documentSymbolProvider then
+          navic.attach(client, bufnr)
+        end
+      end
 
       -- C/C++ setup (clangd)
       lspconfig.clangd.setup({
         capabilities = capabilities,
+        on_attach = on_attach,
         cmd = {
           "clangd",
           "--background-index",
@@ -92,6 +102,7 @@ return {
       -- Python setup
       lspconfig.pyright.setup({
         capabilities = capabilities,
+        on_attach = on_attach,
       })
 
       -- Diagnostic configuration

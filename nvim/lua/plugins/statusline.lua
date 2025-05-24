@@ -3,7 +3,10 @@ return {
   {
     "nvim-lualine/lualine.nvim",
     event = "VeryLazy",
-    dependencies = { "nvim-tree/nvim-web-devicons" },
+    dependencies = { 
+      "nvim-tree/nvim-web-devicons",
+      "nvim-navic",
+    },
     opts = {
       options = {
         theme = "gruvbox",
@@ -28,6 +31,14 @@ return {
           {
             "filename",
             path = 1, -- Show relative path
+          },
+          {
+            function()
+              return require("nvim-navic").get_location()
+            end,
+            cond = function()
+              return require("nvim-navic").is_available()
+            end,
           },
         },
         lualine_x = {

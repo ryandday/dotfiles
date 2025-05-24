@@ -10,7 +10,6 @@ return {
       { "<leader>gp", "<cmd>G push<cr>", desc = "Git Push" },
       { "<leader>gb", "<cmd>G blame<cr>", desc = "Git Blame" },
       { "<leader>gl", "<cmd>Gclog<cr>", desc = "Git Log" },
-      { "<leader>gg", "<cmd>Gbranch<cr>", desc = "Git Branch" },
     },
   },
 

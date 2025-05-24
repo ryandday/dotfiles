@@ -1,4 +1,4 @@
 # dotfiles
 
-My dotfiles for macOS
+My dotfiles for macOS and ubuntu
 

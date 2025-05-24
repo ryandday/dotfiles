@@ -2,6 +2,7 @@ return {
   -- Mason for managing LSP servers
   {
     "williamboman/mason.nvim",
+    version = "v1.11.0",
     cmd = "Mason",
     keys = { { "<leader>cm", "<cmd>Mason<cr>", desc = "Mason" } },
     build = ":MasonUpdate",
@@ -19,11 +20,13 @@ return {
   -- Mason LSP config
   {
     "williamboman/mason-lspconfig.nvim",
+    version = "v1.32.0",
     dependencies = { "mason.nvim" },
     config = function()
       require("mason-lspconfig").setup({
         ensure_installed = { "clangd", "pyright" },
         automatic_installation = true,
+        automatic_enable = false,
       })
     end,
   },
@@ -98,10 +101,6 @@ return {
           nls.builtins.formatting.prettier,
           nls.builtins.formatting.black.with({ extra_args = { "--fast" } }),
           nls.builtins.formatting.clang_format,
-          
-          -- Diagnostics
-          nls.builtins.diagnostics.flake8,
-          nls.builtins.diagnostics.cpplint,
         },
       }
     end,

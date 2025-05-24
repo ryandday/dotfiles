@@ -13,3 +13,4 @@ brew install lf
 brew install kitty
 brew install ccls
 brew install xclip
+brew install luarocks

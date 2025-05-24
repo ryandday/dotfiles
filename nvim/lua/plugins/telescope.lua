@@ -66,6 +66,9 @@ return {
       { "<leader>fc", "<cmd>Telescope git_commits<cr>", desc = "Git Commits" },
       { "<leader>fC", "<cmd>Telescope git_bcommits<cr>", desc = "Buffer Commits" },
       { "<leader>fb", "<cmd>Telescope git_branches<cr>", desc = "Git Branches" },
+      -- Keymap search
+      { "<leader>fk", "<cmd>Telescope keymaps<cr>", desc = "Find Keymaps" },
+      { "<leader>fK", "<cmd>Telescope commands<cr>", desc = "Find Commands" },
     },
     opts = {
       defaults = {

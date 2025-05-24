@@ -2,41 +2,41 @@
 local keymap = vim.keymap.set
 
 -- Prevent leader key from inserting a space
-keymap('n', '<space>', '<nop>')
+keymap('n', '<space>', '<nop>', { desc = 'Disable space in normal mode' })
 
 -- Escape mapping
-keymap('i', 'jk', '<esc>')
+keymap('i', 'jk', '<esc>', { desc = 'Exit insert mode' })
 
 -- Line numbering toggle
-keymap('n', '<leader>rr', ':set norelativenumber!<cr>:set nonumber!<cr>')
+keymap('n', '<leader>rr', ':set norelativenumber!<cr>:set nonumber!<cr>', { desc = 'Toggle line numbers' })
 
 -- Source vimrc
-keymap('n', '<leader>z', ':source ~/.config/nvim/init.lua<cr>')
+keymap('n', '<leader>z', ':source ~/.config/nvim/init.lua<cr>', { desc = 'Reload nvim config' })
 
 -- Save file
-keymap('n', '<leader>w', ':update<cr>')
+keymap('n', '<leader>w', ':update<cr>', { desc = 'Save file' })
 
 -- Copy and paste mappings
 -- yank relative path + line number
 keymap('n', '<leader>yf', function()
   local path_line = vim.fn.expand('%') .. ':' .. vim.fn.line('.')
   vim.fn.setreg('+', path_line)
-end)
+end, { desc = 'Yank file path with line number' })
 
 -- yank absolute path
 keymap('n', '<leader>ya', function()
   vim.fn.setreg('+', vim.fn.expand('%:p'))
-end)
+end, { desc = 'Yank absolute file path' })
 
 -- yank filename
 keymap('n', '<leader>yt', function()
   vim.fn.setreg('+', vim.fn.expand('%:t'))
-end)
+end, { desc = 'Yank filename' })
 
 -- yank directory name
 keymap('n', '<leader>yh', function()
   vim.fn.setreg('+', vim.fn.expand('%:p:h'))
-end)
+end, { desc = 'Yank directory path' })
 
 -- Clean whitespace - remove trailing whitespace and whitespace-only lines
 keymap('n', '<leader>cw', function()
@@ -47,49 +47,49 @@ keymap('n', '<leader>cw', function()
   vim.cmd([[%s/^\s\+$//e]])
   -- Restore cursor position
   vim.fn.setpos('.', save_cursor)
-end)
+end, { desc = 'Clean whitespace' })
 
 -- Search and navigation
-keymap('n', 'n', 'nzz')
-keymap('n', 'N', 'Nzz')
-keymap('n', '<c-d>', '<c-d>zz')
-keymap('n', '<c-u>', '<c-u>zz')
+keymap('n', 'n', 'nzz', { desc = 'Next search result (centered)' })
+keymap('n', 'N', 'Nzz', { desc = 'Previous search result (centered)' })
+keymap('n', '<c-d>', '<c-d>zz', { desc = 'Half page down (centered)' })
+keymap('n', '<c-u>', '<c-u>zz', { desc = 'Half page up (centered)' })
 
 -- Replace mappings
-keymap('n', '<leader>rl', ':%s/<c-r><c-w>//gc<left><left><left>')
+keymap('n', '<leader>rl', ':%s/<c-r><c-w>//gc<left><left><left>', { desc = 'Replace word under cursor (local)' })
 keymap('n', '<leader>rg', function()
   vim.cmd('grep! ' .. vim.fn.expand('<cword>'))
   vim.cmd('cfdo %s/' .. vim.fn.expand('<cword>') .. '//gec<left><left><left><left>')
-end)
+end, { desc = 'Replace word under cursor (global)' })
 
 -- Buffer mappings
--- keymap('n', '<leader>x', ':bd!<cr>')
+-- keymap('n', '<leader>x', ':bd!<cr>', { desc = 'Delete buffer' })
 
 -- Location list mappings
-keymap('n', '<leader>lc', ':lclose<cr>')
-keymap('n', '<leader>lo', ':lopen<cr>')
-keymap('n', ']l', ':lnext<cr>')
-keymap('n', '[l', ':lprev<cr>')
-keymap('n', '[L', ':lfirst<cr>')
-keymap('n', ']L', ':llast<cr>')
+keymap('n', '<leader>lc', ':lclose<cr>', { desc = 'Close location list' })
+keymap('n', '<leader>lo', ':lopen<cr>', { desc = 'Open location list' })
+keymap('n', ']l', ':lnext<cr>', { desc = 'Next location' })
+keymap('n', '[l', ':lprev<cr>', { desc = 'Previous location' })
+keymap('n', '[L', ':lfirst<cr>', { desc = 'First location' })
+keymap('n', ']L', ':llast<cr>', { desc = 'Last location' })
 
 -- Quickfix mappings
-keymap('n', '<leader>cc', ':cclose<cr>')
-keymap('n', '<leader>co', ':copen<cr>')
-keymap('n', '<leader>k', ':cf<cr>')
-keymap('n', '<leader>K', ':cfirst<cr>')
-keymap('n', '<leader>j', ':clast<cr>')
-keymap('n', '<c-k>', ':cp<cr>zz')
-keymap('n', '<c-j>', ':cn<cr>zz')
+keymap('n', '<leader>cc', ':cclose<cr>', { desc = 'Close quickfix' })
+keymap('n', '<leader>co', ':copen<cr>', { desc = 'Open quickfix' })
+keymap('n', '<leader>k', ':cf<cr>', { desc = 'Quickfix first' })
+keymap('n', '<leader>K', ':cfirst<cr>', { desc = 'Quickfix first' })
+keymap('n', '<leader>j', ':clast<cr>', { desc = 'Quickfix last' })
+keymap('n', '<c-k>', ':cp<cr>zz', { desc = 'Previous quickfix (centered)' })
+keymap('n', '<c-j>', ':cn<cr>zz', { desc = 'Next quickfix (centered)' })
 
 -- Tab mappings
-keymap('n', '<leader>tl', ':tabclose<cr>')
-keymap('n', '<leader>to', ':tabnew<cr>')
-keymap('n', ']t', ':tabnext<cr>')
-keymap('n', '[t', ':tabprev<cr>')
+keymap('n', '<leader>tl', ':tabclose<cr>', { desc = 'Close tab' })
+keymap('n', '<leader>to', ':tabnew<cr>', { desc = 'New tab' })
+keymap('n', ']t', ':tabnext<cr>', { desc = 'Next tab' })
+keymap('n', '[t', ':tabprev<cr>', { desc = 'Previous tab' })
 
 -- Netrw mappings
-keymap('n', '<leader>E', ':E .<cr>')
+keymap('n', '<leader>E', ':E .<cr>', { desc = 'Open file explorer' })
 
 -- Custom netrw up directory function
 local function netrw_up_directory()
@@ -106,12 +106,12 @@ local function netrw_up_directory()
   end
 end
 
-keymap('n', '-', netrw_up_directory)
+keymap('n', '-', netrw_up_directory, { desc = 'Go to parent directory' })
 
 -- Build and test mappings
 keymap('n', '<leader>m', function()
   vim.cmd('Make -j -C build')
-end)
+end, { desc = 'Build project' })
 
 keymap('n', '<leader>rt', function()
   if vim.fn.fnamemodify(vim.fn.getcwd(), ':t') ~= 'build' then
@@ -119,4 +119,4 @@ keymap('n', '<leader>rt', function()
   end
   vim.cmd('Dispatch ctest -VV')
   vim.cmd('cd ..')
-end)
+end, { desc = 'Run tests' })

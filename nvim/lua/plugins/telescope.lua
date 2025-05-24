@@ -12,6 +12,10 @@ return {
     opts = {
       disable_netrw = true,
       hijack_netrw = true,
+      hijack_directories = {
+        enable = true,
+        auto_open = true,
+      },
       sort_by = "case_sensitive",
       view = {
         width = 30,
@@ -20,6 +24,7 @@ return {
       renderer = {
         group_empty = true,
         highlight_git = true,
+        highlight_opened_files = "name",
         full_name = false,
         icons = {
           show = {
@@ -32,12 +37,12 @@ return {
             default = "",
             symlink = "",
             git = {
-              unstaged = "✗",
+              unstaged = "●",
               staged = "✓",
-              unmerged = "",
-              renamed = "➜",
-              untracked = "★",
-              deleted = "",
+              unmerged = "◍",
+              renamed = "»",
+              untracked = "◯",
+              deleted = "✖",
               ignored = "◌",
             },
             folder = {
@@ -63,12 +68,13 @@ return {
       git = {
         enable = true,
         ignore = false,
+        show_on_dirs = true,
         timeout = 500,
       },
       actions = {
         open_file = {
           quit_on_open = false,
-          resize_window = true,
+          resize_window = false,
         },
         remove_file = {
           close_window = true,
@@ -76,11 +82,13 @@ return {
       },
       update_focused_file = {
         enable = true,
-        update_cwd = false,
+        update_cwd = true,
+        ignore_list = {},
       },
       diagnostics = {
         enable = true,
         show_on_dirs = true,
+        debounce_delay = 50,
         icons = {
           hint = "",
           info = "",
@@ -89,6 +97,26 @@ return {
         },
       },
     },
+    config = function(_, opts)
+      require("nvim-tree").setup(opts)
+      
+      -- Auto-open nvim-tree when starting vim with a directory
+      vim.api.nvim_create_autocmd("VimEnter", {
+        group = vim.api.nvim_create_augroup("nvim-tree-start-directory", { clear = true }),
+        desc = "Open nvim-tree on startup when starting with directory",
+        callback = function(data)
+          -- buffer is a directory
+          local directory = vim.fn.isdirectory(data.file) == 1
+          
+          if directory then
+            -- change to the directory
+            vim.cmd.cd(data.file)
+            -- open nvim-tree
+            require("nvim-tree.api").tree.open()
+          end
+        end,
+      })
+    end,
   },
 
   -- Telescope for fuzzy finding

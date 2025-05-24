@@ -123,4 +123,13 @@ vim.api.nvim_create_autocmd('FileType', {
     vim.opt_local.tabstop = 2
     vim.opt_local.expandtab = true
   end,
+})
+
+-- Auto open nvim-tree on startup
+vim.api.nvim_create_autocmd("VimEnter", {
+  callback = function()
+    vim.defer_fn(function()
+      require("nvim-tree.api").tree.open()
+    end, 1)
+  end
 }) 

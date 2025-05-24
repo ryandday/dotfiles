@@ -6,8 +6,15 @@ return {
     cmd = { "NvimTreeToggle", "NvimTreeFindFile", "NvimTreeOpen" },
     keys = {
       { "<leader>e", "<cmd>NvimTreeToggle<cr>", desc = "Toggle File Explorer" },
-      { "<leader>E", "<cmd>NvimTreeOpen<cr>", desc = "Open File Explorer" },
-      { "<leader>o", "<cmd>NvimTreeFindFile<cr>", desc = "Find File in Explorer" },
+      { "<leader>o", function()
+        local api = require("nvim-tree.api")
+        if api.tree.is_visible() then
+          api.tree.focus()
+        else
+          api.tree.open()
+        end
+      end, desc = "Open or Focus File Explorer" },
+      { "-", "<cmd>NvimTreeFindFile<cr>", desc = "Find File in Explorer" },
     },
     opts = {
       disable_netrw = true,

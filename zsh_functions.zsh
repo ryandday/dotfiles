@@ -118,10 +118,6 @@ alias connections='lsof -iTCP -sTCP:ESTABLISHED -n -P'
 alias check-http='lsof -i :80'
 alias check-https='lsof -i :443'
 alias check-ssh='lsof -i :22'
-alias check-mysql='lsof -i :3306'
-alias check-postgres='lsof -i :5432'
-alias check-redis='lsof -i :6379'
-alias check-mongo='lsof -i :27017'
 
 # Check what's running on a specific port
 port() {
@@ -330,6 +326,89 @@ netsum() {
 
 # WiFi information (macOS specific)
 if [[ $(uname -s) == "Darwin" ]]; then
-    alias wifi='/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport -I'
-    alias wifiscan='/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport -s'
+    # Modern WiFi diagnostics using wdutil
+    alias wifi='wdutil info'
+    alias wifiscan='wdutil scan'
+    alias wifilog='wdutil diagnose'
+    
+    # WiFi connection details
+    wifidetails() {
+        echo "=== WiFi Connection Details ==="
+        echo "\n--- Basic Info ---"
+        wdutil info | grep -E "(SSID|BSSID|Channel|Signal|Noise|CC|Security)"
+        
+        echo "\n--- Network Preferences ---"
+        networksetup -getairportnetwork en0 2>/dev/null || networksetup -getairportnetwork en1 2>/dev/null
+        
+        echo "\n--- Airport Power ---"
+        networksetup -getairportpower en0 2>/dev/null || networksetup -getairportpower en1 2>/dev/null
+    }
+    
+    # WiFi quality check
+    wifiquality() {
+        echo "=== WiFi Quality Assessment ==="
+        wdutil info | grep -E "(Signal|Noise|RSSI|SNR|Channel)" | while IFS= read -r line; do
+            if [[ $line == *"Signal"* ]]; then
+                signal=$(echo $line | grep -o '\-[0-9]*' | head -1)
+                if [[ -n $signal ]]; then
+                    if [[ $signal -gt -50 ]]; then
+                        echo "$line (Excellent)"
+                    elif [[ $signal -gt -60 ]]; then
+                        echo "$line (Good)"
+                    elif [[ $signal -gt -70 ]]; then
+                        echo "$line (Fair)"
+                    else
+                        echo "$line (Poor)"
+                    fi
+                else
+                    echo "$line"
+                fi
+            else
+                echo "$line"
+            fi
+        done
+    }
+    
+    # WiFi troubleshooting
+    wififix() {
+        echo "=== WiFi Troubleshooting ==="
+        echo "1. Checking WiFi status..."
+        networksetup -getairportpower en0 2>/dev/null || networksetup -getairportpower en1 2>/dev/null
+        
+        echo "\n2. Checking network connectivity..."
+        ping -c 3 8.8.8.8 > /dev/null 2>&1
+        if [[ $? -eq 0 ]]; then
+            echo "✅ Internet connectivity: OK"
+        else
+            echo "❌ Internet connectivity: Failed"
+        fi
+        
+        echo "\n3. Checking DNS resolution..."
+        nslookup google.com > /dev/null 2>&1
+        if [[ $? -eq 0 ]]; then
+            echo "✅ DNS resolution: OK"
+        else
+            echo "❌ DNS resolution: Failed"
+        fi
+        
+        echo "\n4. Current WiFi quality:"
+        wifiquality
+        
+        echo "\n💡 Quick fixes to try:"
+        echo "   - Toggle WiFi: sudo networksetup -setairportpower en0 off && sudo networksetup -setairportpower en0 on"
+        echo "   - Renew DHCP: sudo ipconfig set en0 DHCP"
+        echo "   - Flush DNS: sudo dscacheutil -flushcache"
+        echo "   - Reset network settings: sudo networksetup -detectnewhardware"
+    }
+    
+    # List nearby WiFi networks with signal strength
+    wifilist() {
+        echo "=== Nearby WiFi Networks ==="
+        wdutil scan | grep -E "(SSID|Signal|Channel|Security)" | 
+        awk 'BEGIN{print "SSID\t\t\tSignal\tChannel\tSecurity"} 
+             /SSID/{ssid=$2} 
+             /Signal/{signal=$2} 
+             /Channel/{channel=$2} 
+             /Security/{security=$2; print ssid"\t\t"signal"\t"channel"\t"security; ssid=""; signal=""; channel=""; security=""}'
+    }
 fi

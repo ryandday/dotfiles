@@ -63,9 +63,9 @@ return {
       { "<leader>fr", "<cmd>Telescope lsp_references<cr>", desc = "References" },
       { "<leader>fi", "<cmd>Telescope lsp_implementations<cr>", desc = "Implementations" },
       -- Git related
-      { "<leader>gc", "<cmd>Telescope git_commits<cr>", desc = "Git Commits" },
-      { "<leader>gC", "<cmd>Telescope git_bcommits<cr>", desc = "Buffer Commits" },
-      { "<leader>gb", "<cmd>Telescope git_branches<cr>", desc = "Git Branches" },
+      { "<leader>fc", "<cmd>Telescope git_commits<cr>", desc = "Git Commits" },
+      { "<leader>fC", "<cmd>Telescope git_bcommits<cr>", desc = "Buffer Commits" },
+      { "<leader>fb", "<cmd>Telescope git_branches<cr>", desc = "Git Branches" },
     },
     opts = {
       defaults = {

@@ -2,6 +2,10 @@
 local opt = vim.opt
 local g = vim.g
 
+-- Disable netrw (we use nvim-tree instead)
+g.loaded_netrw = 1
+g.loaded_netrwPlugin = 1
+
 -- Basics
 vim.cmd('syntax on')
 vim.cmd('filetype plugin indent on')
@@ -89,11 +93,6 @@ opt.grepprg = 'rg --vimgrep --no-heading --smart-case --ignore-file .gitignore'
 -- Windows
 opt.splitbelow = true
 opt.splitright = true
-
--- Netrw settings
-g.netrw_banner = 0
-g.netrw_bufsettings = 'noma nomod nu nobl nowrap ro'
-g.netrw_list_hide = '\\(^\\|\\s\\s\\)\\zs\\.\\S\\+'
 
 -- Sign column always on for LSP
 opt.signcolumn = 'yes'

@@ -3,18 +3,24 @@ return {
   {
     "nvim-tree/nvim-tree.lua",
     dependencies = { "nvim-tree/nvim-web-devicons" },
-    cmd = { "NvimTreeToggle", "NvimTreeFindFile" },
+    cmd = { "NvimTreeToggle", "NvimTreeFindFile", "NvimTreeOpen" },
     keys = {
       { "<leader>e", "<cmd>NvimTreeToggle<cr>", desc = "Toggle File Explorer" },
+      { "<leader>E", "<cmd>NvimTreeOpen<cr>", desc = "Open File Explorer" },
       { "<leader>o", "<cmd>NvimTreeFindFile<cr>", desc = "Find File in Explorer" },
     },
     opts = {
+      disable_netrw = true,
+      hijack_netrw = true,
       sort_by = "case_sensitive",
       view = {
         width = 30,
+        side = "left",
       },
       renderer = {
         group_empty = true,
+        highlight_git = true,
+        full_name = false,
         icons = {
           show = {
             file = true,
@@ -22,14 +28,65 @@ return {
             folder_arrow = true,
             git = true,
           },
+          glyphs = {
+            default = "",
+            symlink = "",
+            git = {
+              unstaged = "✗",
+              staged = "✓",
+              unmerged = "",
+              renamed = "➜",
+              untracked = "★",
+              deleted = "",
+              ignored = "◌",
+            },
+            folder = {
+              arrow_closed = "",
+              arrow_open = "",
+              default = "",
+              open = "",
+              empty = "",
+              empty_open = "",
+              symlink = "",
+              symlink_open = "",
+            },
+          },
+        },
+        indent_markers = {
+          enable = true,
         },
       },
       filters = {
         dotfiles = false,
+        custom = { "^.git$", "node_modules", ".cache" },
       },
       git = {
         enable = true,
         ignore = false,
+        timeout = 500,
+      },
+      actions = {
+        open_file = {
+          quit_on_open = false,
+          resize_window = true,
+        },
+        remove_file = {
+          close_window = true,
+        },
+      },
+      update_focused_file = {
+        enable = true,
+        update_cwd = false,
+      },
+      diagnostics = {
+        enable = true,
+        show_on_dirs = true,
+        icons = {
+          hint = "",
+          info = "",
+          warning = "",
+          error = "",
+        },
       },
     },
   },

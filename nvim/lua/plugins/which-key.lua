@@ -15,12 +15,19 @@ return {
         { "<leader>g", group = "Git" },
         { "<leader>l", group = "Location List" },
         { "<leader>r", group = "Replace/Rename" },
-        { "<leader>t", group = "Tabs" },
+        { "<leader>t", group = "Tabs & Terminal" },
+        { "<leader>x", group = "Diagnostics" },
         { "<leader>y", group = "Yank" },
         { "<leader>d", group = "Debug" },
         { "<leader>h", group = "Help" },
         { "]", group = "Next" },
         { "[", group = "Previous" },
+        -- Space-based groups
+        { "<space>a", group = "AI" },
+        { "<space>b", group = "Bookmarks" },
+        { "<space>o", group = "GitHub" },
+        -- Leader-based groups
+        { "<leader>q", group = "Quickfix" },
       },
       icons = {
         breadcrumb = "»", -- symbol used in the command line area that shows your active key combo

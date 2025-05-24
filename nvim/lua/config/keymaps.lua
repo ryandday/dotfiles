@@ -88,26 +88,6 @@ keymap('n', '<leader>to', ':tabnew<cr>', { desc = 'New tab' })
 keymap('n', ']t', ':tabnext<cr>', { desc = 'Next tab' })
 keymap('n', '[t', ':tabprev<cr>', { desc = 'Previous tab' })
 
--- Netrw mappings
-keymap('n', '<leader>E', ':E .<cr>', { desc = 'Open file explorer' })
-
--- Custom netrw up directory function
-local function netrw_up_directory()
-  if vim.bo.filetype == 'netrw' then
-    local current_dir = vim.fn.expand('%:p:h')
-    local parent_dir = vim.fn.fnamemodify(current_dir, ':h')
-    vim.cmd('Explore ' .. vim.fn.fnameescape(parent_dir))
-    vim.fn.search(vim.fn.fnamemodify(current_dir, ':t'), 'w')
-  else
-    local file_name = vim.fn.expand('%:t')
-    local file_dir = vim.fn.expand('%:p:h')
-    vim.cmd('Explore ' .. vim.fn.fnameescape(file_dir))
-    vim.fn.search('\\V' .. vim.fn.escape(file_name, '\\'))
-  end
-end
-
-keymap('n', '-', netrw_up_directory, { desc = 'Go to parent directory' })
-
 -- Build and test mappings
 keymap('n', '<leader>m', function()
   vim.cmd('Make -j -C build')

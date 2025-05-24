@@ -38,6 +38,17 @@ keymap('n', '<leader>yh', function()
   vim.fn.setreg('+', vim.fn.expand('%:p:h'))
 end)
 
+-- Clean whitespace - remove trailing whitespace and whitespace-only lines
+keymap('n', '<leader>cw', function()
+  local save_cursor = vim.fn.getpos('.')
+  -- Remove trailing whitespace
+  vim.cmd([[%s/\s\+$//e]])
+  -- Remove whitespace from empty lines (lines with only whitespace become truly empty)
+  vim.cmd([[%s/^\s\+$//e]])
+  -- Restore cursor position
+  vim.fn.setpos('.', save_cursor)
+end)
+
 -- Search and navigation
 keymap('n', 'n', 'nzz')
 keymap('n', 'N', 'Nzz')

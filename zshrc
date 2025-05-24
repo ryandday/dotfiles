@@ -67,7 +67,6 @@ alias mv='mv -i'         # Confirm before overwriting
 alias rm='rm -i'         # Confirm before removing
 
 # Network and system
-alias ports='netstat -tulanp'
 alias df='df -H'
 alias du='du -ch'
 

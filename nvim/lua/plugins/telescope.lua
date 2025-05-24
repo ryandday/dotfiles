@@ -168,8 +168,16 @@ return {
         selection_caret = " ",
         mappings = {
           i = {
-            ["<C-u>"] = false,
-            ["<C-d>"] = false,
+            ["<C-j>"] = "move_selection_next",
+            ["<C-k>"] = "move_selection_previous",
+            ["<C-u>"] = "preview_scrolling_up",
+            ["<C-d>"] = "preview_scrolling_down",
+            ["<C-b>"] = "preview_scrolling_up",
+            ["<C-f>"] = "preview_scrolling_down",
+            ["<C-y>"] = "preview_scrolling_up",
+            ["<C-e>"] = "preview_scrolling_down",
+            ["<C-S-u>"] = "results_scrolling_up",
+            ["<C-S-d>"] = "results_scrolling_down",
           },
         },
       },

@@ -231,6 +231,7 @@ call plug#begin('~/.vim/plugged')
   Plug 'tpope/vim-repeat'
   " Async
   Plug 'tpope/vim-dispatch'
+  Plug 'nvim-lua/plenary.nvim'
   " Git
   Plug 'tpope/vim-fugitive'
   Plug 'tpope/vim-rhubarb'
@@ -239,14 +240,26 @@ call plug#begin('~/.vim/plugged')
   " File explorer
   Plug 'preservim/nerdtree'
   Plug 'PhilRunninger/nerdtree-buffer-ops'
-  " LSP features, linting and autocomplete 
-  Plug 'dense-analysis/ale'
-  Plug 'prabirshrestha/vim-lsp'
-  Plug 'mattn/vim-lsp-settings'
-  Plug 'prabirshrestha/asyncomplete.vim'
-  Plug 'prabirshrestha/asyncomplete-lsp.vim'
-  Plug 'm-pilia/vim-ccls'
+  Plug 'nvim-tree/nvim-web-devicons'
+  " LSP
+  Plug 'neovim/nvim-lspconfig'
+  Plug 'williamboman/mason.nvim'
+  Plug 'williamboman/mason-lspconfig.nvim'
+  Plug 'nvimtools/none-ls.nvim'
+  " Completion/snippets
+  Plug 'hrsh7th/nvim-cmp'
+  Plug 'hrsh7th/cmp-nvim-lsp'
+  Plug 'hrsh7th/cmp-buffer'
+  Plug 'hrsh7th/cmp-path'
+  Plug 'hrsh7th/cmp-cmdline'
+  Plug 'L3MON4D3/LuaSnip'
+  Plug 'saadparwaiz1/cmp_luasnip'
+  " Diagnostics
+  Plug 'folke/trouble.nvim'
+  Plug 'nvim-telescope/telescope.nvim'
+  Plug 'nvim-treesitter/nvim-treesitter'
   Plug 'wellle/context.vim'
+  " Debugging
   Plug 'epheien/termdbg' " for lldb
 call plug#end()
 
@@ -268,9 +281,6 @@ command! -bang Gbranch call fzf#run(fzf#wrap({'source': 'git branch -avv --color
 nnoremap <leader>gg :Gbranch<cr>
 
 "--- asynccomplete ---
-inoremap <expr> <tab>   pumvisible() ? "\<c-n>" : "\<tab>"
-inoremap <expr> <s-tab> pumvisible() ? "\<c-p>" : "\<s-tab>"
-inoremap <expr> <cr>    pumvisible() ? asyncomplete#close_popup() : "\<cr>"
 
 "--- gruvbox ---
 colorscheme gruvbox
@@ -285,41 +295,134 @@ nnoremap <F7> :TNext<cr>
 nnoremap <F8> :TStep<cr>
 nnoremap <F5> :TContinue<cr>
 
-"--- ale ---
-nmap ]g :ALENext<cr>
-nmap [g :ALEPrevious<cr>
 
 "-- fzf --
 " Allow scrolling when previewing
 let $FZF_DEFAULT_OPTS="--bind ctrl-u:preview-half-page-up,ctrl-d:preview-half-page-down,ctrl-y:preview-up,ctrl-e:preview-down,ctrl-b:page-up,ctrl-f:page-down"
 
-"--- vim-lsp ---
-let g:lsp_diagnostics_enabled = 0 " Let Ale do diagnostics
+lua << EOF
+local cmp = require('cmp')
+cmp.setup({
+  mapping = cmp.mapping.preset.insert({
+    ['<Tab>'] = cmp.mapping(function(fallback)
+      if cmp.visible() then
+        cmp.select_next_item()
+      else
+        fallback()
+      end
+    end),
+    ['<S-Tab>'] = cmp.mapping(function(fallback)
+      if cmp.visible() then
+        cmp.select_prev_item()
+      else
+        fallback()
+      end
+    end),
+    ['<CR>'] = cmp.mapping.confirm({ select = true }),
+  })
+})
+EOF
 
-if executable('ccls')
-    au User lsp_setup call lsp#register_server({
-        \ 'name': 'ccls',
-        \ 'cmd': {server_info->['ccls']},
-        \ 'allowlist': ['.c', '.cc', '.cpp'],
-        \ })
-endif
+" === Diagnostic navigation (replaces ALE mappings) ===
+nnoremap ]g <cmd>lua vim.diagnostic.goto_next()<cr>
+nnoremap [g <cmd>lua vim.diagnostic.goto_prev()<cr>
+nnoremap <leader>e <cmd>lua vim.diagnostic.open_float()<cr>
 
-function! s:on_lsp_buffer_enabled() abort
-    setlocal omnifunc=lsp#complete
-    setlocal signcolumn=yes
-    if exists('+tagfunc') | setlocal tagfunc=lsp#tagfunc | endif
-    nmap <buffer> gd <plug>(lsp-definition)
-    nmap <buffer> gs <plug>(lsp-document-symbol-search)
-    nmap <buffer> gS <plug>(lsp-workspace-symbol-search)
-    nmap <buffer> gr <plug>(lsp-references)
-    nmap <buffer> gt <plug>(lsp-type-definition)
-    nmap <buffer> <leader>rn <plug>(lsp-rename)
-    nmap <buffer> K <plug>(lsp-hover)
-endfunction
+" === LSP mappings (replaces vim-lsp mappings) ===
+nnoremap gd <cmd>lua vim.lsp.buf.definition()<cr>
+nnoremap gs <cmd>lua vim.lsp.buf.document_symbol()<cr>
+nnoremap gS <cmd>lua vim.lsp.buf.workspace_symbol()<cr>
+nnoremap gr <cmd>lua vim.lsp.buf.references()<cr>
+nnoremap gt <cmd>lua vim.lsp.buf.type_definition()<cr>
+nnoremap <leader>rn <cmd>lua vim.lsp.buf.rename()<cr>
+nnoremap K <cmd>lua vim.lsp.buf.hover()<cr>
+nnoremap <leader>ca <cmd>lua vim.lsp.buf.code_action()<cr>
+nnoremap <leader>f <cmd>lua vim.lsp.buf.format({ async = true })<cr>
 
-augroup lsp_install
-    au!
-    " call s:on_lsp_buffer_enabled only for languages that has the server registered.
-    autocmd User lsp_buffer_enabled call s:on_lsp_buffer_enabled()
-augroup END
+" === Trouble mappings (enhanced diagnostics) ===
+nnoremap <leader>xx <cmd>Trouble<cr>
+nnoremap <leader>xd <cmd>Trouble document_diagnostics<cr>
+nnoremap <leader>xw <cmd>Trouble workspace_diagnostics<cr>
+nnoremap <leader>ch <cmd>lua vim.lsp.buf.incoming_calls()<cr>
+nnoremap <leader>cH <cmd>lua vim.lsp.buf.outgoing_calls()<cr>
 
+" === LSP Setup (replaces your ccls and lsp configuration) ===
+lua << EOF
+-- Mason setup
+require("mason").setup()
+require("mason-lspconfig").setup({
+  ensure_installed = { "clangd", "pyright" },
+  automatic_installation = true,
+})
+
+-- LSP configuration
+local lspconfig = require('lspconfig')
+local cmp_nvim_lsp = require('cmp_nvim_lsp')
+local capabilities = cmp_nvim_lsp.default_capabilities()
+
+-- Sign column always on for LSP
+vim.opt.signcolumn = "yes"
+
+-- C/C++ setup (replaces your ccls config)
+lspconfig.clangd.setup({
+  capabilities = capabilities,
+  cmd = {
+    "clangd",
+    "--background-index",
+    "--clang-tidy",
+    "--header-insertion=iwyu",
+    "--completion-style=detailed",
+    "--function-arg-placeholders",
+    "--fallback-style=llvm",
+  },
+  root_dir = lspconfig.util.root_pattern(
+    '.clangd',
+    '.clang-tidy', 
+    '.clang-format',
+    'compile_commands.json',
+    'compile_flags.txt',
+    '.ccls',
+    '.git'
+  ),
+  init_options = {
+    cache = {
+      directory = vim.fn.expand('~/.cache/clangd')
+    }
+  }
+})
+
+-- Python setup
+lspconfig.pyright.setup({
+  capabilities = capabilities,
+})
+
+-- Diagnostic configuration
+vim.diagnostic.config({
+  virtual_text = true,
+  signs = true,
+  underline = true,
+  update_in_insert = false,
+  severity_sort = true,
+})
+
+-- Completion setup
+local cmp = require('cmp')
+local luasnip = require('luasnip')
+
+cmp.setup({
+  snippet = {
+    expand = function(args)
+      luasnip.lsp_expand(args.body)
+    end,
+  },
+  sources = cmp.config.sources({
+    { name = 'nvim_lsp' },
+    { name = 'luasnip' },
+    { name = 'buffer' },
+    { name = 'path' },
+  })
+})
+
+-- Trouble setup
+require("trouble").setup()
+EOF

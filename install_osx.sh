@@ -20,3 +20,4 @@ brew install eza        # Modern ls replacement with icons
 brew install bat        # Better cat with syntax highlighting  
 brew install fd         # Modern find replacement
 brew install btop       # Better top/htop replacement
+brew install osx-cpu-temp

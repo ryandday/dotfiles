@@ -53,48 +53,6 @@ precmd() {
     fi
 }
 
-# Quick directory navigation
-..() {
-    cd ..
-}
-
-...() {
-    cd ../..
-}
-
-....() {
-    cd ../../..
-}
-
-# Enhanced ls with icons (if you have exa/eza installed)
-if command -v eza &> /dev/null; then
-    alias ls='eza --icons --group-directories-first'
-    alias ll='eza -la --icons --group-directories-first'
-    alias lt='eza --tree --level=2 --icons'
-elif command -v exa &> /dev/null; then
-    alias ls='exa --icons --group-directories-first'
-    alias ll='exa -la --icons --group-directories-first'
-    alias lt='exa --tree --level=2 --icons'
-fi
-
-# Better cat with syntax highlighting
-if command -v bat &> /dev/null; then
-    alias cat='bat --paging=never'
-    alias bcat='bat'  # Keep original bat command available
-fi
-
-# Modern find replacement  
-if command -v fd &> /dev/null; then
-    alias find='fd'
-    alias oldfind='command find'  # Keep original find available
-fi
-
-# Better top replacement
-if command -v btop &> /dev/null; then
-    alias top='btop'
-    alias htop='btop'
-fi
-
 # Git enhanced functions
 gst() {
     git status --short --branch
@@ -324,91 +282,250 @@ netsum() {
     fi
 }
 
-# WiFi information (macOS specific)
-if [[ $(uname -s) == "Darwin" ]]; then
-    # Modern WiFi diagnostics using wdutil
-    alias wifi='wdutil info'
-    alias wifiscan='wdutil scan'
-    alias wifilog='wdutil diagnose'
-    
-    # WiFi connection details
-    wifidetails() {
-        echo "=== WiFi Connection Details ==="
-        echo "\n--- Basic Info ---"
-        wdutil info | grep -E "(SSID|BSSID|Channel|Signal|Noise|CC|Security)"
-        
-        echo "\n--- Network Preferences ---"
-        networksetup -getairportnetwork en0 2>/dev/null || networksetup -getairportnetwork en1 2>/dev/null
-        
-        echo "\n--- Airport Power ---"
-        networksetup -getairportpower en0 2>/dev/null || networksetup -getairportpower en1 2>/dev/null
-    }
-    
-    # WiFi quality check
-    wifiquality() {
-        echo "=== WiFi Quality Assessment ==="
-        wdutil info | grep -E "(Signal|Noise|RSSI|SNR|Channel)" | while IFS= read -r line; do
-            if [[ $line == *"Signal"* ]]; then
-                signal=$(echo $line | grep -o '\-[0-9]*' | head -1)
-                if [[ -n $signal ]]; then
-                    if [[ $signal -gt -50 ]]; then
-                        echo "$line (Excellent)"
-                    elif [[ $signal -gt -60 ]]; then
-                        echo "$line (Good)"
-                    elif [[ $signal -gt -70 ]]; then
-                        echo "$line (Fair)"
-                    else
-                        echo "$line (Poor)"
-                    fi
-                else
-                    echo "$line"
-                fi
-            else
-                echo "$line"
+# ==============================================
+# MEMORY & CPU DEBUGGING ALIASES & FUNCTIONS
+# ==============================================
+
+# Memory Information
+alias meminfo='free -h 2>/dev/null || vm_stat | head -10'
+alias memtotal='echo "$(sysctl -n hw.memsize 2>/dev/null | awk "{print \$1/1024/1024/1024}") GB" 2>/dev/null || free -h | grep Mem | awk "{print \$2}"'
+alias swapinfo='sysctl vm.swapusage 2>/dev/null || swapon -s 2>/dev/null || echo "No swap info available"'
+
+# CPU Information  
+alias cpuinfo='sysctl -n machdep.cpu.brand_string 2>/dev/null || cat /proc/cpuinfo | grep "model name" | head -1'
+alias cpucores='sysctl -n hw.ncpu 2>/dev/null || nproc 2>/dev/null || echo "CPU cores: Unknown"'
+alias cpuload='uptime'
+
+# Process Monitoring
+alias psmem='ps aux | sort -k4 -nr | head -20'
+alias pscpu='ps aux | sort -k3 -nr | head -20'
+alias pstime='ps aux | sort -k10 -nr | head -20'
+
+# Memory Usage by Process
+memproc() {
+    if [[ $# -eq 0 ]]; then
+        echo "Usage: memproc <process_name>"
+        echo "Example: memproc chrome"
+        return 1
+    fi
+    echo "Memory usage for processes matching '$1':"
+    if [[ $(uname -s) == "Darwin" ]]; then
+        ps aux | grep -i "$1" | grep -v grep | awk '{print $11 " " $4 "% " $6/1024 "MB"}' | sort -k3 -nr
+    else
+        ps aux | grep -i "$1" | grep -v grep | awk '{print $11 " " $4 "% " $6/1024 "MB"}' | sort -k3 -nr
+    fi
+}
+
+# CPU Usage by Process
+cpuproc() {
+    if [[ $# -eq 0 ]]; then
+        echo "Usage: cpuproc <process_name>"
+        echo "Example: cpuproc node"
+        return 1
+    fi
+    echo "CPU usage for processes matching '$1':"
+    ps aux | grep -i "$1" | grep -v grep | awk '{print $11 " " $3 "%"}' | sort -k2 -nr
+}
+
+# Kill processes by memory usage
+killmem() {
+    local threshold=${1:-80}
+    echo "Finding processes using more than ${threshold}% memory..."
+    if [[ $(uname -s) == "Darwin" ]]; then
+        ps aux | awk -v thresh=$threshold '$4 > thresh {print $2, $11, $4"%"}' | while read pid cmd mem; do
+            echo "Process: $cmd (PID: $pid) using $mem memory"
+            read -q "REPLY?Kill this process? (y/n): "
+            echo
+            if [[ $REPLY =~ ^[Yy]$ ]]; then
+                kill $pid && echo "Killed $pid"
             fi
+        done
+    else
+        ps aux | awk -v thresh=$threshold '$4 > thresh {print $2, $11, $4"%"}' | while read pid cmd mem; do
+            echo "Process: $cmd (PID: $pid) using $mem memory"
+            read -p "Kill this process? (y/n): " -n 1 -r
+            echo
+            if [[ $REPLY =~ ^[Yy]$ ]]; then
+                kill $pid && echo "Killed $pid"
+            fi
+        done
+    fi
+}
+
+# Kill processes by CPU usage
+killcpu() {
+    local threshold=${1:-80}
+    echo "Finding processes using more than ${threshold}% CPU..."
+    ps aux | awk -v thresh=$threshold '$3 > thresh {print $2, $11, $3"%"}' | while read pid cmd cpu; do
+        echo "Process: $cmd (PID: $pid) using $cpu CPU"
+        if [[ $(uname -s) == "Darwin" ]]; then
+            read -q "REPLY?Kill this process? (y/n): "
+            echo
+            if [[ $REPLY =~ ^[Yy]$ ]]; then
+                kill $pid && echo "Killed $pid"
+            fi
+        else
+            read -p "Kill this process? (y/n): " -n 1 -r
+            echo
+            if [[ $REPLY =~ ^[Yy]$ ]]; then
+                kill $pid && echo "Killed $pid"
+            fi
+        fi
+    done
+}
+
+# System Resource Summary
+syssum() {
+    echo "=== System Resource Summary ==="
+    
+    echo "\n--- CPU Information ---"
+    cpuinfo
+    echo "Cores: $(cpucores)"
+    echo "Load: $(cpuload | awk -F': ' '{print $2}')"
+    
+    echo "\n--- Memory Information ---"
+    if [[ $(uname -s) == "Darwin" ]]; then
+        echo "Total Memory: $(memtotal)"
+        echo "Memory Pressure: $(memory_pressure 2>/dev/null || echo "N/A")"
+        vm_stat | head -5
+    else
+        free -h
+    fi
+    
+    echo "\n--- Swap Information ---"
+    swapinfo
+    
+    echo "\n--- Top CPU Processes ---"
+    pscpu | head -5
+    
+    echo "\n--- Top Memory Processes ---"
+    psmem | head -5
+    
+    echo "\n--- Disk Usage ---"
+    df -h | head -5
+}
+
+# Memory pressure monitoring (macOS)
+if [[ $(uname -s) == "Darwin" ]]; then
+    mempressure() {
+        echo "=== Memory Pressure Monitoring ==="
+        echo "Press Ctrl+C to stop"
+        while true; do
+            local pressure=$(memory_pressure 2>/dev/null | head -1)
+            local timestamp=$(date '+%H:%M:%S')
+            echo "[$timestamp] $pressure"
+            sleep 2
         done
     }
     
-    # WiFi troubleshooting
-    wififix() {
-        echo "=== WiFi Troubleshooting ==="
-        echo "1. Checking WiFi status..."
-        networksetup -getairportpower en0 2>/dev/null || networksetup -getairportpower en1 2>/dev/null
+    # Memory statistics with breakdown
+    memstat() {
+        echo "=== Detailed Memory Statistics ==="
         
-        echo "\n2. Checking network connectivity..."
-        ping -c 3 8.8.8.8 > /dev/null 2>&1
-        if [[ $? -eq 0 ]]; then
-            echo "✅ Internet connectivity: OK"
-        else
-            echo "❌ Internet connectivity: Failed"
+        # Get memory info
+        local page_size=$(vm_stat | grep "page size" | awk '{print $8}')
+        local pages_free=$(vm_stat | grep "Pages free" | awk '{print $3}' | tr -d '.')
+        local pages_active=$(vm_stat | grep "Pages active" | awk '{print $3}' | tr -d '.')
+        local pages_inactive=$(vm_stat | grep "Pages inactive" | awk '{print $3}' | tr -d '.')
+        local pages_wired=$(vm_stat | grep "Pages wired down" | awk '{print $4}' | tr -d '.')
+        local pages_compressed=$(vm_stat | grep "Pages stored in compressor" | awk '{print $5}' | tr -d '.')
+        
+        if [[ -n $page_size && -n $pages_free ]]; then
+            echo "Page Size: $page_size bytes"
+            echo "Free Memory: $(($pages_free * $page_size / 1024 / 1024)) MB"
+            echo "Active Memory: $(($pages_active * $page_size / 1024 / 1024)) MB"
+            echo "Inactive Memory: $(($pages_inactive * $page_size / 1024 / 1024)) MB"
+            echo "Wired Memory: $(($pages_wired * $page_size / 1024 / 1024)) MB"
+            echo "Compressed Memory: $(($pages_compressed * $page_size / 1024 / 1024)) MB"
         fi
         
-        echo "\n3. Checking DNS resolution..."
-        nslookup google.com > /dev/null 2>&1
-        if [[ $? -eq 0 ]]; then
-            echo "✅ DNS resolution: OK"
-        else
-            echo "❌ DNS resolution: Failed"
-        fi
+        echo "\n--- Raw vm_stat Output ---"
+        vm_stat
         
-        echo "\n4. Current WiFi quality:"
-        wifiquality
-        
-        echo "\n💡 Quick fixes to try:"
-        echo "   - Toggle WiFi: sudo networksetup -setairportpower en0 off && sudo networksetup -setairportpower en0 on"
-        echo "   - Renew DHCP: sudo ipconfig set en0 DHCP"
-        echo "   - Flush DNS: sudo dscacheutil -flushcache"
-        echo "   - Reset network settings: sudo networksetup -detectnewhardware"
-    }
-    
-    # List nearby WiFi networks with signal strength
-    wifilist() {
-        echo "=== Nearby WiFi Networks ==="
-        wdutil scan | grep -E "(SSID|Signal|Channel|Security)" | 
-        awk 'BEGIN{print "SSID\t\t\tSignal\tChannel\tSecurity"} 
-             /SSID/{ssid=$2} 
-             /Signal/{signal=$2} 
-             /Channel/{channel=$2} 
-             /Security/{security=$2; print ssid"\t\t"signal"\t"channel"\t"security; ssid=""; signal=""; channel=""; security=""}'
+        echo "\n--- Memory Pressure ---"
+        memory_pressure 2>/dev/null || echo "Memory pressure info not available"
     }
 fi
+
+# Memory leak detection
+memleak() {
+    if [[ $# -eq 0 ]]; then
+        echo "Usage: memleak <process_name> [interval_seconds]"
+        echo "Example: memleak node 5"
+        return 1
+    fi
+    
+    local process_name=$1
+    local interval=${2:-5}
+    
+    echo "=== Memory Leak Detection for '$process_name' ==="
+    echo "Monitoring every $interval seconds. Press Ctrl+C to stop"
+    echo "Time\t\tPID\tMemory(MB)\tChange"
+    
+    local prev_mem=0
+    while true; do
+        local timestamp=$(date '+%H:%M:%S')
+        local process_info=$(ps aux | grep -i "$process_name" | grep -v grep | head -1)
+        
+        if [[ -n $process_info ]]; then
+            local pid=$(echo $process_info | awk '{print $2}')
+            local mem_kb=$(echo $process_info | awk '{print $6}')
+            local mem_mb=$((mem_kb / 1024))
+            
+            local change=""
+            if [[ $prev_mem -gt 0 ]]; then
+                local diff=$((mem_mb - prev_mem))
+                if [[ $diff -gt 0 ]]; then
+                    change="+${diff}MB"
+                elif [[ $diff -lt 0 ]]; then
+                    change="${diff}MB"
+                else
+                    change="0MB"
+                fi
+            fi
+            
+            echo "$timestamp\t$pid\t${mem_mb}MB\t\t$change"
+            prev_mem=$mem_mb
+        else
+            echo "$timestamp\tProcess '$process_name' not found"
+        fi
+        
+        sleep $interval
+    done
+}
+
+# Quick performance snapshot
+perfsnap() {
+    echo "=== Performance Snapshot $(date) ==="
+    
+    echo "\n--- System Load ---"
+    uptime
+    
+    echo "\n--- CPU Usage ---"
+    if [[ $(uname -s) == "Darwin" ]]; then
+        top -l 1 -n 0 | grep "CPU usage"
+    else
+        top -bn1 | grep "Cpu(s)" | head -1
+    fi
+    
+    echo "\n--- Memory Usage ---"
+    if [[ $(uname -s) == "Darwin" ]]; then
+        vm_stat | head -6
+    else
+        free -h
+    fi
+    
+    echo "\n--- Disk I/O ---"
+    if command -v iostat &> /dev/null; then
+        iostat -d 1 1 | tail -n +4
+    fi
+    
+    echo "\n--- Network ---"
+    netstat -i | head -3
+    
+    echo "\n--- Top 5 CPU Processes ---"
+    pscpu | head -6
+    
+    echo "\n--- Top 5 Memory Processes ---"
+    psmem | head -6
+}

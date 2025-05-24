@@ -12,3 +12,4 @@ brew install antidote
 brew install lf
 brew install kitty
 brew install ccls
+brew install xclip

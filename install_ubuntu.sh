@@ -1,4 +1,4 @@
 sudo apt-get update --fix-missing
-sudo apt install zsh fzf ripgrep zsh-antidote lf kitty ccls plocate build-essential llvm clang-format clangd sccache
+sudo apt install zsh fzf ripgrep zsh-antidote lf kitty ccls plocate build-essential llvm clang-format clangd sccache xclip
 
 chsh -s $(which zsh)

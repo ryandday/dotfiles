@@ -4,7 +4,11 @@ ln -fs $PWD/zshrc $HOME/.zshrc
 ln -fs $PWD/zsh_functions.zsh $HOME/.zsh_functions.zsh
 ln -fs $PWD/zsh_plugins.txt $HOME/.zsh_plugins.txt
 ln -fs $PWD/tmux.conf $HOME/.tmux.conf
-ln -fs $PWD/vimrc $HOME/.vimrc
+# Create ~/.config directory if it doesn't exist
+mkdir -p $HOME/.config
+# Remove existing nvim config and symlink the new folder structure
+rm -rf $HOME/.config/nvim
+ln -fs $PWD/nvim $HOME/.config/nvim
 mkdir -p $HOME/.config/kitty
 ln -fs $PWD/kitty.conf $HOME/.config/kitty/kitty.conf
 # install kitty theme

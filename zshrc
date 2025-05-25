@@ -131,7 +131,6 @@ bindkey '^H' backward-kill-word                # Ctrl+Backspace
 bindkey '^[[3;5~' kill-word                    # Ctrl+Delete
 
 source ~/.zsh_functions.zsh
-bindkey -s '^o' 'lfcd\n'
 
 # Package manager (path from brew installation)
 if [[ "$(uname -s)" == "Darwin" ]]; then

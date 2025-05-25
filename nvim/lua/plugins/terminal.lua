@@ -35,6 +35,10 @@ return {
           background = "Normal",
         },
       },
+      on_open = function(term)
+        local opts = {buffer = term.bufnr}
+        vim.keymap.set('t', '<C-o>', [[<C-\><C-n>]], opts)
+      end,
     },
   },
 }

@@ -10,6 +10,7 @@ return {
       ensure_installed = {
         "clangd",
         "pyright",
+        "dart-debug-adapter",
       },
     },
     config = function(_, opts)
@@ -24,7 +25,7 @@ return {
     dependencies = { "mason.nvim" },
     config = function()
       require("mason-lspconfig").setup({
-        ensure_installed = { "clangd", "pyright" },
+        ensure_installed = { "clangd", "pyright", "dartls" },
         automatic_installation = true,
         automatic_enable = false,
       })

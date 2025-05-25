@@ -75,7 +75,15 @@ return {
       "MeanderingProgrammer/render-markdown.nvim",
     },
     config = function()
-      require("avante").setup()
+      require("avante").setup({
+        provider = "gemini",
+        gemini = {
+          model = "gemini-2.5-flash-preview-05-20",
+          temperature = 0.6,
+          max_tokens = 4096,
+          timeout = 30000, -- Timeout in milliseconds
+        },
+      })
     end,
   },
 } 

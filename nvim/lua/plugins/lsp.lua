@@ -11,6 +11,7 @@ return {
         "clangd",
         "pyright",
         "dart-debug-adapter",
+        "dartls",
       },
     },
     config = function(_, opts)
@@ -25,7 +26,7 @@ return {
     dependencies = { "mason.nvim" },
     config = function()
       require("mason-lspconfig").setup({
-        ensure_installed = { "clangd", "pyright", "dartls" },
+        ensure_installed = { "clangd", "pyright" },
         automatic_installation = true,
         automatic_enable = false,
       })
@@ -104,6 +105,27 @@ return {
       lspconfig.pyright.setup({
         capabilities = capabilities,
         on_attach = on_attach,
+      })
+
+      -- Dart setup
+      lspconfig.dartls.setup({
+        capabilities = capabilities,
+        on_attach = on_attach,
+        cmd = { "dart", "language-server", "--protocol=lsp" },
+        filetypes = { "dart" },
+        init_options = {
+          closingLabels = true,
+          flutterOutline = true,
+          onlyAnalyzeProjectsWithOpenFiles = true,
+          outline = true,
+          suggestFromUnimportedLibraries = true
+        },
+        settings = {
+          dart = {
+            completeFunctionCalls = true,
+            showTodos = true,
+          },
+        },
       })
 
       -- Diagnostic configuration

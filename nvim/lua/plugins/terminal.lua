@@ -25,7 +25,7 @@ return {
       insert_mappings = true,
       persist_size = true,
       direction = "float",
-      close_on_exit = true,
+      close_on_exit = false,
       shell = vim.o.shell,
       float_opts = {
         border = "curved",

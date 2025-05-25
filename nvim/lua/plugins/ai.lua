@@ -1,27 +1,4 @@
 return {
-  -- Copilot integration
-  -- {
-  --   "zbirenbaum/copilot.lua",
-  --   cmd = "Copilot",
-  --   event = "InsertEnter",
-  --   opts = {
-  --     suggestion = {
-  --       enabled = true,
-  --       auto_trigger = true,
-  --       debounce = 75,
-  --       keymap = {
-  --         accept = "<M-l>",
-  --         accept_word = false,
-  --         accept_line = false,
-  --         next = "<M-]>",
-  --         prev = "<M-[>",
-  --         dismiss = "<C-]>",
-  --       },
-  --     },
-  --     panel = { enabled = false },
-  --   },
-  -- },
-
   -- UI improvements
   {
     "stevearc/dressing.nvim",
@@ -60,6 +37,22 @@ return {
     opts = {},
   },
 
+  -- MCPHub - MCP Server Manager
+  {
+    "ravitemer/mcphub.nvim",
+    event = "VeryLazy",
+    dependencies = {
+      "nvim-lua/plenary.nvim",
+      "MunifTanjim/nui.nvim",
+    },
+    opts = {
+      integrations = {
+        avante = true,  -- Enable Avante integration
+      },
+      auto_install = true,  -- Automatically install servers when needed
+    },
+  },
+
   -- Avante AI chat
   {
     "yetone/avante.nvim",
@@ -70,9 +63,9 @@ return {
       "nvim-lua/plenary.nvim",
       "MunifTanjim/nui.nvim",
       "nvim-tree/nvim-web-devicons",
-      "zbirenbaum/copilot.lua",
       "HakonHarnes/img-clip.nvim",
       "MeanderingProgrammer/render-markdown.nvim",
+      "ravitemer/mcphub.nvim",  -- Add MCPHub as dependency
     },
     config = function()
       require("avante").setup({
@@ -81,9 +74,13 @@ return {
           model = "gemini-2.5-flash-preview-05-20",
           temperature = 0.6,
           max_tokens = 4096,
-          timeout = 30000, -- Timeout in milliseconds
+          timeout = 30000,
+        },
+        mcp = {
+          enabled = true,  -- Enable MCP integration
+          use_mcphub = true,  -- Use MCPHub for server management
         },
       })
     end,
   },
-} 
+}

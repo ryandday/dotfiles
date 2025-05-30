@@ -25,6 +25,15 @@ return {
         "vimdoc",
         "markdown",
         "markdown_inline",
+        "make",        -- For Makefile syntax
+        "cmake",       -- For CMake syntax
+        "regex",       -- For regular expressions
+        "diff",        -- For diff output
+        "git_config",  -- For git configuration
+        "git_rebase",  -- For git rebase files
+        "gitignore",   -- For .gitignore files
+        "json",        -- For JSON output
+        "yaml",        -- For YAML files
       },
       incremental_selection = {
         enable = true,

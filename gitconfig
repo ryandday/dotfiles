@@ -16,3 +16,6 @@
 	recurse = true
 [fetch]
 	parallel = 8
+[core]
+    editor = nvim
+    untrackedCache = true

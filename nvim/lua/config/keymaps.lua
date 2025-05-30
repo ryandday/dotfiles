@@ -84,7 +84,7 @@ keymap('n', '<c-j>', ':cn<cr>zz', { desc = 'Next quickfix (centered)' })
 
 -- Tab mappings
 keymap('n', '<leader>tl', ':tabclose<cr>', { desc = 'Close tab' })
-keymap('n', '<leader>to', ':tabnew<cr>', { desc = 'New tab' })
+keymap('n', '<leader>tn', ':tabnew<cr>', { desc = 'New tab' })
 keymap('n', ']t', ':tabnext<cr>', { desc = 'Next tab' })
 keymap('n', '[t', ':tabprev<cr>', { desc = 'Previous tab' })
 

@@ -66,12 +66,22 @@ return {
       "HakonHarnes/img-clip.nvim",
       "MeanderingProgrammer/render-markdown.nvim",
       "ravitemer/mcphub.nvim",  -- Add MCPHub as dependency
+      "zbirenbaum/copilot.lua", -- Required for copilot provider
     },
     config = function()
+      -- Get provider from environment variable, default to gemini
+      local provider = os.getenv("AVANTE_PROVIDER") or "gemini"
+      
       require("avante").setup({
-        provider = "gemini",
+        provider = provider,
         gemini = {
           model = "gemini-2.5-flash-preview-05-20",
+          temperature = 0.6,
+          max_tokens = 4096,
+          timeout = 30000,
+        },
+        copilot = {
+          model = "gpt-4o-2024-08-06",
           temperature = 0.6,
           max_tokens = 4096,
           timeout = 30000,

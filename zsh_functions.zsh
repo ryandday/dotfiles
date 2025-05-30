@@ -21,13 +21,101 @@ ta() {
   tmux switch-client -t $selected_name
 }
 
+# Background function to update git status for prompt caching
+update_git_status_cache() {
+  local repo_path="$1"
+  local cache_file="$2"
+  
+  # Ensure cache directory exists
+  mkdir -p "$(dirname "$cache_file")"
+  
+  # Get git status
+  local git_status=""
+  local status_indicator=""
+  
+  if git rev-parse --git-dir > /dev/null 2>&1; then
+    git_status=$(git status --porcelain 2>/dev/null)
+    if [[ -n "$git_status" ]]; then
+      status_indicator=" %F{red}●%f"
+    else
+      status_indicator=" %F{green}✓%f"
+    fi
+  fi
+  
+  # Write to cache with flock
+  local timestamp=$(date +%s)
+  local lock_fd
+  exec {lock_fd}>"$cache_file.lock"
+  if flock -x "$lock_fd"; then
+    echo "$timestamp:$status_indicator" > "$cache_file"
+    flock -u "$lock_fd"
+  fi
+  exec {lock_fd}>&-
+}
+
+# Git status function for prompt (reads from cache)
+git_status_indicator() {
+  # Check if we're in a git repository
+  if ! git rev-parse --git-dir > /dev/null 2>&1; then
+    return
+  fi
+  
+  # Create cache file path based on repository
+  local repo_root=$(git rev-parse --show-toplevel 2>/dev/null)
+  if [[ -z "$repo_root" ]]; then
+    return
+  fi
+  
+  local cache_file="$GIT_STATUS_CACHE_DIR/$(echo "$repo_root" | sed 's|/|_|g')"
+  local current_time=$(date +%s)
+  local should_update=false
+  local status_indicator=""
+  
+  # Read from cache with flock
+  if [[ -f "$cache_file" ]]; then
+    local cache_content
+    local lock_fd
+    exec {lock_fd}>"$cache_file.lock"
+    if flock -s "$lock_fd"; then
+      cache_content=$(cat "$cache_file" 2>/dev/null)
+      flock -u "$lock_fd"
+    fi
+    exec {lock_fd}>&-
+    
+    if [[ -n "$cache_content" ]]; then
+      local cache_timestamp="${cache_content%%:*}"
+      status_indicator="${cache_content#*:}"
+      
+      # Check if cache is expired
+      if (( current_time - cache_timestamp > GIT_STATUS_TIMEOUT )); then
+        should_update=true
+      fi
+    else
+      should_update=true
+    fi
+  else
+    should_update=true
+  fi
+  
+  # Start background update if needed
+  if [[ "$should_update" == "true" ]]; then
+    # Start new background job (disown to prevent job control messages)
+    (update_git_status_cache "$repo_root" "$cache_file" &)
+  fi
+  
+  # Return cached status or empty if no cache yet
+  echo "$status_indicator"
+}
+
 # Command execution time tracking
 preexec() {
     timer=$(date +%s%N)
 }
 
+# Optimized precmd - always updates but fast
 precmd() {
-    vcs_info  # Keep existing vcs_info call
+    # Always update vcs_info but it's configured to be fast
+    vcs_info
     
     if [ $timer ]; then
         local now=$(date +%s%N)
@@ -517,4 +605,31 @@ perfsnap() {
     
     echo "\n--- Top 5 Memory Processes ---"
     psmem | head -6
+}
+
+# Performance monitoring for prompt
+prompt_benchmark() {
+    echo "Benchmarking prompt components..."
+    
+    # Test vcs_info
+    echo -n "vcs_info: "
+    time (vcs_info 2>/dev/null)
+    
+    # Test git_status function
+    echo -n "git_status(): "
+    time (git_status_indicator)
+    
+    # Test git operations individually
+    echo -n "git rev-parse --is-inside-work-tree: "
+    time (git rev-parse --is-inside-work-tree >/dev/null 2>&1)
+    
+    echo -n "git diff-index --quiet HEAD: "
+    time (git diff-index --quiet HEAD -- 2>/dev/null)
+    
+    echo -n "git ls-files --others --exclude-standard: "
+    time (git ls-files --others --exclude-standard 2>/dev/null >/dev/null)
+    
+    echo "\nFor comparison, the old slow method:"
+    echo -n "git status --porcelain: "
+    time (git status --porcelain 2>/dev/null >/dev/null)
 }

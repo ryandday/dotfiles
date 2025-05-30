@@ -97,6 +97,17 @@ opt.splitright = true
 -- Sign column always on for LSP
 opt.signcolumn = 'yes'
 
+-- Terminal settings for better debugging experience
+-- Disable line numbers in terminal buffers
+vim.api.nvim_create_autocmd("TermOpen", {
+  pattern = "*",
+  callback = function()
+    vim.opt_local.number = false
+    vim.opt_local.relativenumber = false
+    vim.opt_local.cursorline = false
+  end,
+})
+
 -- Format options
 vim.api.nvim_create_autocmd('FileType', {
   pattern = '*',
@@ -123,13 +134,4 @@ vim.api.nvim_create_autocmd('FileType', {
     vim.opt_local.tabstop = 2
     vim.opt_local.expandtab = true
   end,
-})
-
--- Auto open nvim-tree on startup
-vim.api.nvim_create_autocmd("VimEnter", {
-  callback = function()
-    vim.defer_fn(function()
-      require("nvim-tree.api").tree.open()
-    end, 1)
-  end
 }) 

@@ -9,7 +9,17 @@ return {
       { "<leader>o", function()
         local api = require("nvim-tree.api")
         if api.tree.is_visible() then
-          api.tree.focus()
+          -- Check if we're currently in any nvim-tree window
+          local current_buf = vim.api.nvim_get_current_buf()
+          local buf_name = vim.api.nvim_buf_get_name(current_buf)
+          
+          if string.match(buf_name, "NvimTree_") then
+            -- Switch to the other window
+            vim.cmd("wincmd w")
+          else
+            -- Focus on nvim-tree
+            api.tree.focus()
+          end
         else
           api.tree.open()
         end
@@ -106,23 +116,6 @@ return {
     },
     config = function(_, opts)
       require("nvim-tree").setup(opts)
-      
-      -- Auto-open nvim-tree when starting vim with a directory
-      vim.api.nvim_create_autocmd("VimEnter", {
-        group = vim.api.nvim_create_augroup("nvim-tree-start-directory", { clear = true }),
-        desc = "Open nvim-tree on startup when starting with directory",
-        callback = function(data)
-          -- buffer is a directory
-          local directory = vim.fn.isdirectory(data.file) == 1
-          
-          if directory then
-            -- change to the directory
-            vim.cmd.cd(data.file)
-            -- open nvim-tree
-            require("nvim-tree.api").tree.open()
-          end
-        end,
-      })
     end,
   },
 
@@ -156,7 +149,7 @@ return {
       -- Git related
       { "<leader>fc", "<cmd>Telescope git_commits<cr>", desc = "Git Commits" },
       { "<leader>fC", "<cmd>Telescope git_bcommits<cr>", desc = "Buffer Commits" },
-      { "<leader>gg", "<cmd>Telescope git_branches<cr>", desc = "Git Branches" },
+      { "<leader>gg", "<cmd>Telescope git_branches<cr>", desc = "Git Branches (Ctrl+W for worktree)" },
       -- Keymap search
       { "<leader>fk", "<cmd>Telescope keymaps<cr>", desc = "Find Keymaps" },
       { "<leader>fK", "<cmd>Telescope commands<cr>", desc = "Find Commands" },
@@ -180,6 +173,153 @@ return {
           },
         },
       },
+      pickers = {
+        -- Git branches picker with worktree creation support
+        -- Press Ctrl+W on any branch to create a worktree at ~/repos/<reponame>_<branchname>
+        -- Special characters in branch names are replaced with underscores
+        git_branches = {
+          mappings = {
+            i = {
+              ["<C-w>"] = function(prompt_bufnr)
+                local entry = require("telescope.actions.state").get_selected_entry()
+                require("telescope.actions").close(prompt_bufnr)
+                
+                if entry then
+                  local branch_name = entry.value
+                  -- Remove origin/ prefix if present
+                  branch_name = branch_name:gsub("^origin/", "")
+                  
+                  -- Get repository name
+                  local repo_root = vim.fn.system("git rev-parse --show-toplevel"):gsub('\n', '')
+                  local repo_name = vim.fn.fnamemodify(repo_root, ":t")
+                  
+                  -- Sanitize branch name (replace special chars with underscores)
+                  local sanitized_branch = branch_name:gsub("[^%w%-]", "_")
+                  
+                  -- Create worktree directory path
+                  local worktree_path = vim.fn.expand("~/repos/" .. repo_name .. "_" .. sanitized_branch)
+                  
+                  -- Check if directory already exists
+                  if vim.fn.isdirectory(worktree_path) == 1 then
+                    vim.notify("Worktree already exists at: " .. worktree_path, vim.log.levels.INFO)
+                    -- Change to the existing worktree directory
+                    vim.cmd("cd " .. worktree_path)
+                    return
+                  end
+                  
+                  -- Create the worktree
+                  local cmd = string.format("git worktree add %s %s", worktree_path, branch_name)
+                  local result = vim.fn.system(cmd)
+                  
+                  if vim.v.shell_error == 0 then
+                    vim.notify("Created worktree: " .. worktree_path, vim.log.levels.INFO)
+                    -- Change to the new worktree directory
+                    vim.cmd("cd " .. worktree_path)
+                    
+                    -- Create and switch to tmux session if in tmux
+                    if vim.env.TMUX then
+                      local session_name = vim.fn.fnamemodify(worktree_path, ":t"):gsub("%.", "_")
+                      
+                      -- Create tmux session
+                      local new_session_cmd = string.format("tmux new-session -ds %s -c %s", session_name, worktree_path)
+                      local create_result = vim.fn.system(new_session_cmd)
+                      
+                      if vim.v.shell_error == 0 then
+                        -- Start vim in the new session
+                        local vim_cmd = string.format("tmux send-keys -t %s 'vim .' Enter", session_name)
+                        vim.fn.system(vim_cmd)
+                        
+                        -- Switch to the session
+                        local switch_cmd = string.format("tmux switch-client -t %s", session_name)
+                        local switch_result = vim.fn.system(switch_cmd)
+                        
+                        if vim.v.shell_error == 0 then
+                          vim.notify("Switched to tmux session: " .. session_name, vim.log.levels.INFO)
+                        else
+                          vim.notify("Failed to switch to tmux session: " .. switch_result, vim.log.levels.ERROR)
+                        end
+                      else
+                        vim.notify("Failed to create tmux session: " .. create_result, vim.log.levels.ERROR)
+                      end
+                    end
+                  else
+                    vim.notify("Failed to create worktree: " .. result, vim.log.levels.ERROR)
+                  end
+                end
+              end,
+            },
+            n = {
+              ["<C-w>"] = function(prompt_bufnr)
+                local entry = require("telescope.actions.state").get_selected_entry()
+                require("telescope.actions").close(prompt_bufnr)
+                
+                if entry then
+                  local branch_name = entry.value
+                  -- Remove origin/ prefix if present
+                  branch_name = branch_name:gsub("^origin/", "")
+                  
+                  -- Get repository name
+                  local repo_root = vim.fn.system("git rev-parse --show-toplevel"):gsub('\n', '')
+                  local repo_name = vim.fn.fnamemodify(repo_root, ":t")
+                  
+                  -- Sanitize branch name (replace special chars with underscores)
+                  local sanitized_branch = branch_name:gsub("[^%w%-]", "_")
+                  
+                  -- Create worktree directory path
+                  local worktree_path = vim.fn.expand("~/repos/" .. repo_name .. "_" .. sanitized_branch)
+                  
+                  -- Check if directory already exists
+                  if vim.fn.isdirectory(worktree_path) == 1 then
+                    vim.notify("Worktree already exists at: " .. worktree_path, vim.log.levels.INFO)
+                    -- Change to the existing worktree directory
+                    vim.cmd("cd " .. worktree_path)
+                    return
+                  end
+                  
+                  -- Create the worktree
+                  local cmd = string.format("git worktree add %s %s", worktree_path, branch_name)
+                  local result = vim.fn.system(cmd)
+                  
+                  if vim.v.shell_error == 0 then
+                    vim.notify("Created worktree: " .. worktree_path, vim.log.levels.INFO)
+                    -- Change to the new worktree directory
+                    vim.cmd("cd " .. worktree_path)
+                    
+                    -- Create and switch to tmux session if in tmux
+                    if vim.env.TMUX then
+                      local session_name = vim.fn.fnamemodify(worktree_path, ":t"):gsub("%.", "_")
+                      
+                      -- Create tmux session
+                      local new_session_cmd = string.format("tmux new-session -ds %s -c %s", session_name, worktree_path)
+                      local create_result = vim.fn.system(new_session_cmd)
+                      
+                      if vim.v.shell_error == 0 then
+                        -- Start vim in the new session
+                        local vim_cmd = string.format("tmux send-keys -t %s 'vim .' Enter", session_name)
+                        vim.fn.system(vim_cmd)
+                        
+                        -- Switch to the session
+                        local switch_cmd = string.format("tmux switch-client -t %s", session_name)
+                        local switch_result = vim.fn.system(switch_cmd)
+                        
+                        if vim.v.shell_error == 0 then
+                          vim.notify("Switched to tmux session: " .. session_name, vim.log.levels.INFO)
+                        else
+                          vim.notify("Failed to switch to tmux session: " .. switch_result, vim.log.levels.ERROR)
+                        end
+                      else
+                        vim.notify("Failed to create tmux session: " .. create_result, vim.log.levels.ERROR)
+                      end
+                    end
+                  else
+                    vim.notify("Failed to create worktree: " .. result, vim.log.levels.ERROR)
+                  end
+                end
+              end,
+            },
+          },
+        },
+      },
     },
   },
 
@@ -194,7 +334,6 @@ return {
     "junegunn/fzf.vim",
     dependencies = { "junegunn/fzf" },
     keys = {
-      { "<leader>d", "<cmd>Rg<cr>", desc = "Ripgrep Search" },
       { "<leader>fn", ":grep! \"\" <left><left>", desc = "Grep Pattern" },
       { "<leader>fw", function()
         vim.cmd('grep! ' .. vim.fn.expand('<cword>'))

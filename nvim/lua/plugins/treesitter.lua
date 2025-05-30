@@ -41,7 +41,7 @@ return {
   -- Modern C++ syntax highlighting
   {
     "bfrg/vim-cpp-modern",
-    ft = { "cpp", "c", "h", "hpp" },
+    ft = { "cpp", "c", "cc", "h", "hpp" },
   },
 
   -- Treesitter context - shows current function/class at top

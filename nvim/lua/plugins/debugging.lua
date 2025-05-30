@@ -1,159 +1,85 @@
 return {
-  -- Debug Adapter Protocol
+  -- Termdbg debugger with debug config manager
   {
-    "mfussenegger/nvim-dap",
-    dependencies = {
-      -- Creates a beautiful debugger UI
-      "rcarriga/nvim-dap-ui",
-      
-      -- Required dependency for nvim-dap-ui
-      "nvim-neotest/nvim-nio",
-      
-      -- Installs the debug adapters for you
-      "williamboman/mason.nvim",
-      "jay-babu/mason-nvim-dap.nvim",
-      
-      -- Add your own debuggers here
-      "leoluz/nvim-dap-go",
+    "epheien/termdbg",
+    dir = vim.fn.stdpath("config") .. "/third_party/termdbg", -- Use local version from third_party
+    dev = true, -- Mark as development plugin
+    cmd = { "Termdbg" },
+    keys = {
+      { "<F5>", "<cmd>TContinue<cr>", desc = "Continue" },
+      { "<F10>", "<cmd>TNext<cr>", desc = "Step Over" },
+      { "<F11>", "<cmd>TStep<cr>", desc = "Step Into" },
+      { "<S-F11>", "<cmd>TFinish<cr>", desc = "Step Out" },
+      { "<F9>", "<cmd>TToggleBreak<cr>", desc = "Toggle Breakpoint" },
+      { "<leader>dr", desc = "Run debug command (UI)" },
+      { "<leader>dm", desc = "Manage debug commands (UI)" },
+      { "<leader>da", desc = "Add debug command (UI)" },
     },
-    keys = function(_, keys)
-      local dap = require "dap"
-      local dapui = require "dapui"
-      return {
-        -- Basic debugging keymaps
-        { "<F5>", dap.continue, desc = "Debug: Start/Continue" },
-        { "<F1>", dap.step_into, desc = "Debug: Step Into" },
-        { "<F2>", dap.step_over, desc = "Debug: Step Over" },
-        { "<F3>", dap.step_out, desc = "Debug: Step Out" },
-        { "<leader>B", dap.toggle_breakpoint, desc = "Debug: Toggle Breakpoint" },
-        -- { "<leader>B", function()
-        --   dap.set_breakpoint(vim.fn.input 'Breakpoint condition: ')
-        -- end, desc = "Debug: Set Breakpoint" },
-        -- Debugging mappings (termdbg)
-        -- If I use termdbg again, I will use these mappings
-        -- NOTE: These F-key mappings may conflict with DAP debugging setup
-        -- keymap('n', '<F9>', ':TToggleBreak<cr>')
-        -- keymap('n', '<F7>', ':TNext<cr>')
-        -- keymap('n', '<F8>', ':TStep<cr>')
-        -- keymap('n', '<F5>', ':TContinue<cr>') 
-        
-        -- Toggle to see last session result. Without this, you can't see session output in case of unhandled exception.
-        { "<F7>", dapui.toggle, desc = "Debug: See last session result." },
-        unpack(keys),
-      }
-    end,
     config = function()
-      local dap = require "dap"
-      local dapui = require "dapui"
-
-      require("mason-nvim-dap").setup {
-        -- Makes a best effort to setup the various debuggers with
-        -- reasonable debug configurations
-        automatic_installation = true,
-
-        -- You can provide additional configuration to the handlers,
-        -- see mason-nvim-dap README for more information
-        handlers = {},
-
-        -- You'll need to check that you have the required things installed
-        -- online, please don't ask me how to install them :)
-        ensure_installed = {
-          -- Update this to ensure that you have the debuggers for the langs you want
-          "codelldb",
-        },
-      }
-
-      -- Dap UI setup
-      -- For more information, see |:help nvim-dap-ui|
-      dapui.setup {
-        -- Set icons to characters that are more likely to work in every terminal.
-        --    Feel free to remove or use ones that you like more! :)
-        --    Don't feel like these are good choices.
-        icons = { expanded = "▾", collapsed = "▸", current_frame = "*" },
-        controls = {
-          icons = {
-            pause = "⏸",
-            play = "▶",
-            step_into = "⏎",
-            step_over = "⏭",
-            step_out = "⏮",
-            step_back = "b",
-            run_last = "▶▶",
-            terminate = "⏹",
-            disconnect = "⏏",
-          },
-        },
-      }
-
-      -- Change breakpoint icons
-      vim.api.nvim_set_hl(0, 'DapBreakpoint', { ctermbg = 0, fg = '#993939', bg = '#31353f' })
-      vim.api.nvim_set_hl(0, 'DapLogPoint', { ctermbg = 0, fg = '#61afef', bg = '#31353f' })
-      vim.api.nvim_set_hl(0, 'DapStopped', { ctermbg = 0, fg = '#98c379', bg = '#31353f' })
-
-      vim.fn.sign_define('DapBreakpoint', { text='●', texthl='DapBreakpoint', linehl='DapBreakpoint', numhl='DapBreakpoint' })
-      vim.fn.sign_define('DapBreakpointCondition', { text='◆', texthl='DapBreakpoint', linehl='DapBreakpoint', numhl='DapBreakpoint' })
-      vim.fn.sign_define('DapBreakpointRejected', { text='▪', texthl='DapBreakpoint', linehl='DapBreakpoint', numhl='DapBreakpoint' })
-      vim.fn.sign_define('DapLogPoint', { text='◆', texthl='DapLogPoint', linehl='DapLogPoint', numhl='DapLogPoint' })
-      vim.fn.sign_define('DapStopped', { text='▶', texthl='DapStopped', linehl='DapStopped', numhl='DapStopped' })
-
-      -- Automatically open UI
-      dap.listeners.after.event_initialized["dapui_config"] = function()
-        dapui.open()
-      end
-      dap.listeners.before.event_terminated["dapui_config"] = function()
-        dapui.close()
-      end
-      dap.listeners.before.event_exited["dapui_config"] = function()
-        dapui.close()
+      -- Simple function to check if current buffer is a termdbg terminal
+      local function is_debug_terminal(buf)
+        buf = buf or vim.api.nvim_get_current_buf()
+        local buf_name = vim.api.nvim_buf_get_name(buf)
+        local buf_type = vim.api.nvim_buf_get_option(buf, "buftype")
+        
+        if buf_type == "terminal" then
+          return buf_name:match("gdb") or buf_name:match("lldb") or buf_name:match("pdb") or 
+                 buf_name:match("dlv") or buf_name:match("ipdb")
+        end
+        return false
       end
 
-      -- C++ configuration
-      dap.adapters.gdb = {
-        type = "executable",
-        command = "gdb",
-        args = { "--interpreter=dap", "--eval-command", "set print pretty on" }
-      }
+      -- Duct tape because ctrl+w is delete word backwards in a terminal, so you can't move to other windows.
+      vim.api.nvim_create_autocmd("TermOpen", {
+        pattern = "*",
+        callback = function()
+          local buf = vim.api.nvim_get_current_buf()
+          
+          -- Wait a bit for the terminal name to be set properly
+          vim.defer_fn(function()
+            if is_debug_terminal(buf) then
+              local opts = { buffer = buf, silent = true }
+              
+              -- Enhanced Ctrl+W that returns to insert mode
+              vim.keymap.set('t', '<C-w>', '<C-\\><C-n><C-w>', opts)
+              vim.keymap.set('t', '<C-w>h', '<C-\\><C-n><C-w>h', opts)
+              vim.keymap.set('t', '<C-w>j', '<C-\\><C-n><C-w>j', opts)
+              vim.keymap.set('t', '<C-w>k', '<C-\\><C-n><C-w>k', opts)
+              vim.keymap.set('t', '<C-w>l', '<C-\\><C-n><C-w>l', opts)
+              vim.keymap.set('t', '<C-w>w', '<C-\\><C-n><C-w>w', opts)
+              -- Use this one to switch back and forth between windows while debugging
+              vim.keymap.set('t', '<C-w>p', '<C-\\><C-n><C-w>p', opts)
+              vim.keymap.set('t', '<C-w>o', '<C-\\><C-n><C-w><C-w>', opts)
+              
+              -- Other useful terminal keymaps
+              -- normal mode
+              vim.keymap.set('t', '<C-o>', '<C-\\><C-n>', opts)
+            end
+          end, 100)
+        end,
+      })
 
-      dap.adapters.lldb = {
-        type = 'executable',
-        command = '/usr/bin/lldb', -- adjust as needed, must be absolute path
-        name = 'lldb'
-      }
+      -- When entering a debug terminal, start in insert mode (for window switching)
+      -- This is a workaround for termdbg's starting in normal mode 
+      vim.api.nvim_create_autocmd("BufEnter", {
+        pattern = "*",
+        callback = function()
+          local buf = vim.api.nvim_get_current_buf()
+          if is_debug_terminal(buf) then
+            vim.defer_fn(function()
+              if vim.api.nvim_buf_is_valid(buf) and vim.api.nvim_get_current_buf() == buf then
+                if vim.fn.mode() == 'n' then
+                  vim.cmd('startinsert')
+                end
+              end
+            end, 10)
+          end
+        end,
+      })
 
-      -- C++ configurations
-      dap.configurations.cpp = {
-        {
-          name = 'Launch',
-          type = 'lldb',
-          request = 'launch',
-          program = function()
-            return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
-          end,
-          cwd = '${workspaceFolder}',
-          stopOnEntry = false,
-          args = {},
-        },
-        {
-          name = 'Launch with GDB',
-          type = 'gdb',
-          request = 'launch',
-          program = function()
-            return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
-          end,
-          cwd = "${workspaceFolder}",
-          stopAtBeginningOfMainSubprogram = false,
-        },
-        {
-          name = 'Attach to gdbserver :1234',
-          type = 'gdb',
-          request = 'attach',
-          target = 'localhost:1234',
-          program = function()
-            return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
-          end,
-          cwd = '${workspaceFolder}'
-        },
-      }
-    end
-  }
+      -- Setup debug commands manager
+      local debug_manager = require("myplugins.debug-config-manager")
+      debug_manager.setup()
+    end,
+  },
 }

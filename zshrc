@@ -2,25 +2,24 @@
 autoload -Uz vcs_info
 zstyle ':vcs_info:git:*' formats ' on %F{magenta}%b%f'
 zstyle ':vcs_info:*' enable git
+
+# Performance optimizations for vcs_info
+zstyle ':vcs_info:git:*' check-for-changes false  # Disable expensive change detection
+zstyle ':vcs_info:git:*' get-revision false       # Don't get revision hash
+zstyle ':vcs_info:git*' command git                # Explicitly use git command
+
+# Source functions early so they're available for prompt setup
+source ~/.zsh_functions.zsh
+
+# Git status background caching system
+GIT_STATUS_CACHE_DIR="/tmp/zsh_git_status_$$"
+GIT_STATUS_TIMEOUT=3
+
 setopt PROMPT_SUBST
 
-# Function to get git status
-git_status() {
-    if git rev-parse --git-dir > /dev/null 2>&1; then
-        local git_state=""
-        # Check for changes
-        if [[ -n $(git status --porcelain) ]]; then
-            git_state=" %F{red}●%f"
-        else
-            git_state=" %F{green}✓%f"
-        fi
-        echo $git_state
-    fi
-}
-
-# Enhanced multi-line prompt
+# Enhanced multi-line prompt with git status
 PS1='
-%F{cyan}╭─%f %F{blue}%~%f%F{yellow}${vcs_info_msg_0_}%f$(git_status) %F{magenta}[%*]%f
+%F{cyan}╭─%f %F{blue}%~%f%F{yellow}${vcs_info_msg_0_}%f$(git_status_indicator) %F{magenta}[%*]%f
 %F{cyan}╰─%f %F{green}❯%f '
 
 # Initial right-side prompt (will be updated by functions)
@@ -28,7 +27,12 @@ RPS1='%F{240}%n@%m%f'
 
 export CLICOLOR=1
 export LSCOLORS=ExGxBxDxCxEgEdxbxgxcxd
-export FZF_DEFAULT_COMMAND='rg --files'
+
+# Optimized FZF settings for large repositories
+export FZF_DEFAULT_COMMAND='rg --files --hidden --follow --glob "!.git/*" --glob "!node_modules/*" --glob "!.cache/*"'
+export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+export FZF_DEFAULT_OPTS='--height 100% --layout=reverse --border --ansi'
+
 export REVIEW_BASE=main # Used in git aliases
 
 if [[ $(uname -s) == "Darwin" ]]; then
@@ -58,6 +62,9 @@ alias vim='nvim'
 alias ls='ls --color=auto'
 alias cpu='ps wwaxr -o pid,stat,%cpu,time,command | head -10'
 alias path='echo -e ${PATH//:/\\n}' # Echo PATH with newlines
+
+alias cmaked='cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_COLOR_DIAGNOSTICS=OFF -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache'
+alias cmaker='cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_COLOR_DIAGNOSTICS=OFF -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache'
 
 # Quick file operations
 alias grep='grep --color=auto'
@@ -116,6 +123,14 @@ setopt HIST_IGNORE_SPACE     # Do not record an event starting with a space
 setopt HIST_SAVE_NO_DUPS     # Do not write a duplicate event to the history file
 setopt HIST_VERIFY           # Do not execute immediately upon history expansion
 
+# Performance optimizations
+setopt NO_BEEP               # Disable beep
+setopt AUTO_RESUME          # Attempt to resume existing job before creating a new process
+setopt NOTIFY               # Report status of background jobs immediately
+setopt NO_BG_NICE           # Don't run all background jobs at a lower priority
+setopt NO_HUP               # Don't kill jobs on shell exit
+setopt NO_CHECK_JOBS        # Don't report on jobs when shell exit
+
 # Enable auto-correction and suggestions
 setopt CORRECT               # Correct commands
 setopt AUTO_CD               # Auto cd when typing directory name
@@ -125,12 +140,6 @@ setopt PUSHD_IGNORE_DUPS     # Don't push multiple copies of the same directory
 # Enhanced keyboard shortcuts
 bindkey '^[[A' history-substring-search-up     # Up arrow for history search
 bindkey '^[[B' history-substring-search-down   # Down arrow for history search
-bindkey '^[[1;5C' forward-word                 # Ctrl+Right arrow
-bindkey '^[[1;5D' backward-word                # Ctrl+Left arrow
-bindkey '^H' backward-kill-word                # Ctrl+Backspace
-bindkey '^[[3;5~' kill-word                    # Ctrl+Delete
-
-source ~/.zsh_functions.zsh
 
 # Package manager (path from brew installation)
 if [[ "$(uname -s)" == "Darwin" ]]; then
@@ -156,4 +165,9 @@ bindkey -M menuselect 'h' vi-backward-char
 bindkey -M menuselect 'k' vi-up-line-or-history
 bindkey -M menuselect 'l' vi-forward-char
 bindkey -M menuselect 'j' vi-down-line-or-history
+
+# Source machine-specific configuration if it exists
+if [[ -f ~/.config/machine_specific.zsh ]]; then
+  source ~/.config/machine_specific.zsh
+fi
 

@@ -18,7 +18,6 @@ local function load_preferences()
     local ok, data = pcall(vim.json.decode, content)
     if ok and type(data) == "table" then
       preferences = data
-      print("DEBUG: Loaded preferences:", vim.inspect(preferences))
     else
       preferences = {}
     end
@@ -34,7 +33,6 @@ local function save_preferences()
     local content = vim.json.encode(preferences)
     file:write(content)
     file:close()
-    print("DEBUG: Saved preferences to:", preferences_file)
   else
     vim.notify("Failed to save header-source preferences", vim.log.levels.ERROR)
   end
@@ -99,38 +97,48 @@ local function is_source(ext)
   return false
 end
 
--- Find project root (look for common indicators)
+-- Find project root (prioritize git repository root)
 local function find_project_root(start_dir)
-  local indicators = {
-    ".git", "CMakeLists.txt", "Makefile", "configure.ac", "configure.in",
+  local current = start_dir
+  local git_root = nil
+  local other_root = nil
+  
+  local other_indicators = {
+    "CMakeLists.txt", "Makefile", "configure.ac", "configure.in",
     "Cargo.toml", "package.json", "pom.xml", "build.gradle", ".project"
   }
   
-  local current = start_dir
   while current ~= "/" do
-    for _, indicator in ipairs(indicators) do
-      local path = current .. "/" .. indicator
-      if vim.fn.filereadable(path) == 1 or vim.fn.isdirectory(path) == 1 then
-        return current
+    -- Check for .git directory first (highest priority)
+    local git_path = current .. "/.git"
+    if vim.fn.isdirectory(git_path) == 1 then
+      git_root = current
+      -- Don't break here, keep going up to find the topmost git repo
+    end
+    
+    -- Check for other project indicators only if we haven't found git yet
+    if not other_root then
+      for _, indicator in ipairs(other_indicators) do
+        local path = current .. "/" .. indicator
+        if vim.fn.filereadable(path) == 1 or vim.fn.isdirectory(path) == 1 then
+          other_root = current
+          break
+        end
       end
     end
+    
     current = vim.fn.fnamemodify(current, ":h")
   end
-  return start_dir -- fallback to original directory
+  
+  -- Prefer git root over other indicators
+  return git_root or other_root or start_dir
 end
 
--- Find corresponding files with global search
+-- Find corresponding files with git-aware search
 local function find_corresponding_files(current_file)
   local current_ext = get_extension(current_file)
   local basename = get_basename(current_file)
   local directory = get_directory(current_file)
-  
-  -- Debug logging
-  print("DEBUG: Looking for corresponding files")
-  print("DEBUG: Current file:", current_file)
-  print("DEBUG: Extension:", current_ext)
-  print("DEBUG: Basename:", basename)
-  print("DEBUG: Directory:", directory)
   
   if not current_ext then
     return {}
@@ -146,51 +154,79 @@ local function find_corresponding_files(current_file)
     return {}
   end
   
-  print("DEBUG: Target extensions:", vim.inspect(target_extensions))
-  
   local project_root = find_project_root(directory)
-  print("DEBUG: Project root:", project_root)
   
   local matches = {}
   
-  -- Global recursive search for matching files
-  local function search_recursively(search_dir, max_depth)
-    if max_depth <= 0 then return end
+  -- Use git to find all tracked files (respects .gitignore and is much faster)
+  local function find_files_with_git()
+    local git_files = {}
     
-    local handle = vim.loop.fs_scandir(search_dir)
-    if not handle then return end
-    
-    local name, type = vim.loop.fs_scandir_next(handle)
-    while name do
-      local full_path = search_dir .. "/" .. name
-      
-      if type == "file" then
-        -- Check if this file matches our target
-        local file_basename = get_basename(full_path)
-        local file_ext = get_extension(full_path)
-        
-        if file_basename == basename then
-          for _, target_ext in ipairs(target_extensions) do
-            if file_ext == target_ext then
-              print("DEBUG: Found match:", full_path)
-              table.insert(matches, full_path)
-              break
-            end
-          end
+    -- Try to use git ls-files to get all tracked files
+    local handle = io.popen("cd " .. vim.fn.shellescape(project_root) .. " && git ls-files 2>/dev/null")
+    if handle then
+      for line in handle:lines() do
+        if line and line ~= "" then
+          local full_path = project_root .. "/" .. line
+          table.insert(git_files, full_path)
         end
-      elseif type == "directory" and not name:match("^%.") and name ~= "node_modules" and name ~= ".git" then
-        -- Skip common directories that we don't want to search
-        search_recursively(full_path, max_depth - 1)
       end
+      handle:close()
+    end
+    
+    return git_files
+  end
+  
+  -- Fallback to recursive directory scan if git is not available
+  local function find_files_recursively()
+    local all_files = {}
+    
+    local function search_recursively(search_dir, max_depth)
+      if max_depth <= 0 then return end
       
-      name, type = vim.loop.fs_scandir_next(handle)
+      local handle = vim.loop.fs_scandir(search_dir)
+      if not handle then return end
+      
+      local name, type = vim.loop.fs_scandir_next(handle)
+      while name do
+        local full_path = search_dir .. "/" .. name
+        
+        if type == "file" then
+          table.insert(all_files, full_path)
+        elseif type == "directory" and not name:match("^%.") and name ~= "node_modules" and name ~= ".git" then
+          -- Skip common directories that we don't want to search
+          search_recursively(full_path, max_depth - 1)
+        end
+        
+        name, type = vim.loop.fs_scandir_next(handle)
+      end
+    end
+    
+    search_recursively(project_root, 10)
+    return all_files
+  end
+  
+  -- Get all files in the repository
+  local all_files = find_files_with_git()
+  if #all_files == 0 then
+    all_files = find_files_recursively()
+  end
+  
+  -- Filter files to find matches
+  for _, file_path in ipairs(all_files) do
+    local file_basename = get_basename(file_path)
+    local file_ext = get_extension(file_path)
+    
+    if file_basename == basename then
+      for _, target_ext in ipairs(target_extensions) do
+        if file_ext == target_ext then
+          table.insert(matches, file_path)
+          break
+        end
+      end
     end
   end
   
-  -- Start the recursive search from project root (limit depth to avoid performance issues)
-  search_recursively(project_root, 10)
-  
-  print("DEBUG: Final matches:", vim.inspect(matches))
   return matches
 end
 

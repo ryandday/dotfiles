@@ -1,5 +1,6 @@
 #!/bin/bash
 
+
 ln -fs $PWD/zshrc $HOME/.zshrc
 ln -fs $PWD/zsh_functions.zsh $HOME/.zsh_functions.zsh
 ln -fs $PWD/zsh_plugins.txt $HOME/.zsh_plugins.txt
@@ -19,4 +20,18 @@ mkdir -p ~/.vim/.undo
 mkdir -p ~/.vim/.undonvim
 mkdir -p ~/.vim/.backup
 mkdir -p ~/.vim/.swp
+
+# Setup git configuration
+echo "Setting up git configuration..."
+read -p "Enter your git user name: " GIT_USER_NAME
+read -p "Enter your git email: " GIT_USER_EMAIL
+
+# Set git user name and email globally (stored outside this repo)
+git config --global user.name "$GIT_USER_NAME"
+git config --global user.email "$GIT_USER_EMAIL"
+
+# Setup git config include to use our dotfiles config
+# This way git can write to ~/.gitconfig without affecting our repo
+git config --global include.path "$PWD/gitconfig"
+echo "Git configuration included from dotfiles with name: $GIT_USER_NAME, email: $GIT_USER_EMAIL"
 

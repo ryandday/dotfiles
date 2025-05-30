@@ -35,5 +35,17 @@ require("lazy").setup("plugins", {
   },
 })
 
+-- Manually load bookmark plugin 
+-- for some reason it doesn't do my leader b mappings with lazy.nvim
+vim.defer_fn(function()
+  local ok, bookmark_sets = pcall(require, 'myplugins.bookmark-sets')
+  if ok then
+    bookmark_sets.setup({
+      enable_numbered_jumps = true,
+      quick_jump_keys = { "a", "s", "d", "f", "g" }
+    })
+  end
+end, 100)
+
 -- Note: All plugin configurations are now in separate files under lua/plugins/
 -- This keeps the main plugin file clean and makes it easy to manage individual plugins 

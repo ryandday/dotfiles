@@ -12,6 +12,9 @@ return {
     opts = {
       highlight = { enable = true },
       indent = { enable = true },
+      semantic_tokens = {
+        enable = true,
+      },
       ensure_installed = {
         "bash",
         "c",

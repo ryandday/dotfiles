@@ -15,20 +15,6 @@ function M.setup(opts)
   
   -- Load saved filters
   config.state.saved_filters = cache.load_filters()
-  
-  -- Set up commands
-  vim.api.nvim_create_user_command('AwsExplorer', function()
-    M.open_explorer()
-  end, { desc = 'Open AWS Explorer' })
-  
-  vim.api.nvim_create_user_command('AwsClearCache', function()
-    M.clear_cache()
-  end, { desc = 'Clear AWS cache' })
-  
-  -- Set up key mapping for cache clearing
-  vim.keymap.set('n', '<leader>awx', function()
-    M.clear_cache()
-  end, { desc = 'Clear AWS cache' })
 end
 
 -- Open the AWS resource explorer

@@ -13,6 +13,10 @@ vim.api.nvim_create_user_command('AWSNvimOpen', function()
   require('aws-nvim').open_explorer()
 end, {})
 
+vim.api.nvim_create_user_command('AwsExplorer', function()
+  require('aws-nvim').open_explorer()
+end, { desc = 'Open AWS Explorer' })
+
 vim.api.nvim_create_user_command('AWSNvimStack', function(opts)
   require('aws-nvim').open_stack(opts.args)
 end, {nargs = '?'})
@@ -32,6 +36,10 @@ end, {nargs = '?'})
 vim.api.nvim_create_user_command('AWSNvimRegion', function(opts)
   require('aws-nvim').set_region(opts.args)
 end, {nargs = '?'})
+
+vim.api.nvim_create_user_command('AwsClearCache', function()
+  require('aws-nvim').clear_cache()
+end, { desc = 'Clear AWS cache' })
 
 -- Create auto commands for the AWS explorer buffer
 local aws_group = vim.api.nvim_create_augroup('aws_nvim', { clear = true })

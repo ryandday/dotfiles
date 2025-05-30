@@ -12,13 +12,15 @@ return {
       "AWSNvimRefresh",
       "AWSNvimFilter",
       "AWSNvimProfile",
-      "AWSNvimRegion"
+      "AWSNvimRegion",
+      "AwsClearCache",
     },
     keys = {
       { "<leader>aws", "<cmd>AWSNvimOpen<cr>", desc = "Open AWS Explorer" },
       { "<leader>awf", "<cmd>AWSNvimFilter<cr>", desc = "Filter AWS Resources" },
       { "<leader>awr", "<cmd>AWSNvimRegion<cr>", desc = "Change AWS Region" },
       { "<leader>awp", "<cmd>AWSNvimProfile<cr>", desc = "Change AWS Profile" },
+      { "<leader>awx", "<cmd>AwsClearCache<cr>", desc = "Clear AWS Cache" },
     },
     opts = {
       -- AWS settings

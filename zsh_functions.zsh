@@ -633,3 +633,251 @@ prompt_benchmark() {
     echo -n "git status --porcelain: "
     time (git status --porcelain 2>/dev/null >/dev/null)
 }
+
+aws_get_stack_info() {
+  local service_pattern=""
+  local task_pattern=""
+  local container_pattern=""
+  
+  # First parameter is stack_name (required)
+  local stack_name="$1"
+  if [ -z "$stack_name" ]; then
+    echo "Error: stack_name is required as first parameter"
+    echo "Usage: get_stack_info <stack_name> [-s <service_pattern>] [-t <task_pattern>] [-c <container_pattern>]"
+    return 1
+  fi
+  
+  # Shift past stack_name
+  shift
+  
+  # Parse command line options
+  while getopts "s:t:c:" opt; do
+    case ${opt} in
+      s)
+        service_pattern="$OPTARG"
+        ;;
+      t)
+        task_pattern="$OPTARG"
+        ;;
+      c)
+        container_pattern="$OPTARG"
+        ;;
+      \?)
+        echo "Usage: get_stack_info <stack_name> [-s <service_pattern>] [-t <task_pattern>] [-c <container_pattern>]"
+        return 1
+        ;;
+    esac
+  done
+  
+  # Get the AWS region from the default profile or environment
+  # local region=$(aws configure get region) # always us-east-1 right now
+  if [ -z "$region" ]; then
+    region="us-east-1"  # Default region if not configured
+  fi
+
+  # Get the stack URL
+  local stack_url="https://console.aws.amazon.com/cloudformation/home?region=${region}#/stacks/stackinfo?stackId=${stack_name}"
+
+  echo "└── Stack: ${stack_name}"
+  echo "    🔗 ${stack_url}"
+
+  # Get all ECS services from CloudFormation
+  local services=$(aws cloudformation list-stack-resources \
+    --stack-name "$stack_name" \
+    --query "StackResourceSummaries[?ResourceType==\`AWS::ECS::Service\`].[LogicalResourceId,PhysicalResourceId]" \
+    --output text)
+
+  if [ -z "$services" ]; then
+    echo "    ⚠️  No ECS services found in stack"
+    return 1
+  fi
+
+  # Process each service
+  echo "$services" | while read -r logical_id physical_id; do
+    # Skip if service doesn't match the pattern (if a pattern was provided)
+    if [ -n "$service_pattern" ] && ! echo "$logical_id" | grep -q "$service_pattern"; then
+      continue
+    fi
+
+    # Extract cluster name and actual service name from ARN/PhysicalResourceId
+    local cluster_name=$(echo "$physical_id" | sed -n 's/.*service\/\([^\/]*\)\/.*/\1/p')
+    local actual_service_name=$(echo "$physical_id" | sed -n 's/.*\/\([^\/]*\)$/\1/p')
+
+    if [ -z "$cluster_name" ] || [ -z "$actual_service_name" ]; then
+      echo "    ⚠️  Could not extract cluster and service names from ARN: $physical_id"
+      continue
+    fi
+
+    # Generate service URL
+    local service_url="https://console.aws.amazon.com/ecs/home?region=${region}#/clusters/${cluster_name}/services/${actual_service_name}/details"
+
+    echo "    └── Service: ${actual_service_name} (Cluster: ${cluster_name})"
+    echo "        🔗 ${service_url}"
+
+    # Get task ARNs
+    local all_task_arns=$(aws ecs list-tasks \
+      --cluster "$cluster_name" \
+      --service-name "$actual_service_name" \
+      --query 'taskArns[]' \
+      --output text)
+
+    if [ -n "$all_task_arns" ]; then
+      # Process each task ARN individually
+      for task_arn in $(echo "$all_task_arns" | tr '\t' '\n'); do
+        # Skip empty lines
+        [ -z "$task_arn" ] && continue
+
+        # Extract the task ID from the ARN for display
+        task_id=$(echo "$task_arn" | awk -F '/' '{print $NF}')
+        
+        # Skip if task doesn't match the pattern (if a pattern was provided)
+        if [ -n "$task_pattern" ] && ! echo "$task_id" | grep -q "$task_pattern"; then
+          continue
+        fi
+
+        # Generate task URL
+        local task_url="https://console.aws.amazon.com/ecs/home?region=${region}#/clusters/${cluster_name}/tasks/${task_id}/details"
+
+        # Get task details including container instance ID
+        local task_details=$(aws ecs describe-tasks \
+          --cluster "$cluster_name" \
+          --tasks "$task_arn" \
+          --output json)
+
+        # Extract EC2 instance ARN
+        local container_instance_arn=$(echo "$task_details" | jq -r '.tasks[0].containerInstanceArn // ""')
+
+        # Get EC2 instance ID
+        local ec2_instance_id=""
+        if [ -n "$container_instance_arn" ]; then
+          ec2_instance_id=$(aws ecs describe-container-instances \
+            --cluster "$cluster_name" \
+            --container-instances "$container_instance_arn" \
+            --query 'containerInstances[0].ec2InstanceId' \
+            --output text)
+        fi
+
+        # Get task status and task definition ARN
+        local task_status=$(echo "$task_details" | jq -r '.tasks[0].lastStatus + " | " + (.tasks[0].healthStatus // "NONE")')
+        local task_def_arn=$(echo "$task_details" | jq -r '.tasks[0].taskDefinitionArn')
+
+        # Extract task definition name and revision
+        local task_def_name=$(echo "$task_def_arn" | awk -F '/' '{print $NF}' | cut -d':' -f1)
+        local task_def_revision=$(echo "$task_def_arn" | awk -F '/' '{print $NF}' | cut -d':' -f2)
+
+        echo "        └── Task: ${task_id}"
+        echo "            🔗 ${task_url}"
+        echo "            📊 Status: ${task_status}"
+        if [ -n "$ec2_instance_id" ]; then
+          echo "            🖥️ EC2 Instance: ${ec2_instance_id}"
+        fi
+
+        # Get task definition details
+        local task_def=$(aws ecs describe-task-definition \
+          --task-definition "$task_def_arn" \
+          --query 'taskDefinition' \
+          --output json)
+
+        # Get container details from the running task
+        local containers=$(echo "$task_details" | jq -r '.tasks[0].containers')
+        local container_count=$(echo "$containers" | jq 'length')
+        local displayed_containers=0
+        
+        # Count how many containers we'll actually display (for correct tree formatting)
+        if [ -n "$container_pattern" ]; then
+          for ((i=0; i<$container_count; i++)); do
+            local container_name=$(echo "$containers" | jq -r ".[$i].name")
+            if echo "$container_name" | grep -q "$container_pattern"; then
+              displayed_containers=$((displayed_containers+1))
+            fi
+          done
+        else
+          displayed_containers=$container_count
+        fi
+
+        # Process each container
+        for ((i=0; i<$container_count; i++)); do
+          # Get container details
+          local container_name=$(echo "$containers" | jq -r ".[$i].name")
+          
+          # Skip if container doesn't match the pattern (if a pattern was provided)
+          if [ -n "$container_pattern" ] && ! echo "$container_name" | grep -q "$container_pattern"; then
+            continue
+          fi
+          
+          local container_image=$(echo "$containers" | jq -r ".[$i].image")
+          local container_status="$(echo "$containers" | jq -r ".[$i].lastStatus") | $(echo "$containers" | jq -r ".[$i].healthStatus // \"NONE\"")"
+
+          # Tree prefix based on position - need to account for filtered containers
+          displayed_containers=$((displayed_containers-1))
+          if [ "$displayed_containers" -eq 0 ]; then
+            prefix="            └── "
+            log_prefix="                "
+            ssm_log_prefix="                "
+          else
+            prefix="            ├── "
+            log_prefix="            │   "
+            ssm_log_prefix="                "
+          fi
+
+          echo "${prefix}Container: ${container_name}"
+          echo "${log_prefix}📊 Status: ${container_status}"
+          echo "${log_prefix}🐳 Image: $(echo $container_image | cut -d':' -f1):$(echo $container_image | cut -d':' -f2 | cut -c1-12)..."
+
+          # Create SSM command to connect to container via EC2 instance if possible
+          if [ -n "$ec2_instance_id" ]; then
+            local docker_filter="task-$(echo $task_id | cut -c -8)"
+
+            # Very simple, safe command that just shows container and returns to bash prompt
+            local docker_grep_pattern="ecs-${task_def_name}-${task_def_revision}-${container_name}"
+            # 🔌
+            echo "${ssm_log_prefix} aws ssm start-session --region ${region} --target ${ec2_instance_id} --document-name AWS-StartInteractiveCommand --parameters '{\"command\":[\"CID=\$(sudo docker ps | grep ${docker_grep_pattern} | grep ${container_name} | head -n1 | cut -d\\\" \\\" -f1); if [ -n \$CID ]; then echo \\\"Connecting to container \$CID...\\\"; sudo docker exec -it \$CID /bin/bash || sudo docker exec -it \$CID /bin/sh; else echo \\\"Container not found\\\"; fi\"]}'"
+          fi
+
+          # Find the matching container definition in the task definition
+          local log_config=$(echo "$task_def" | jq -r --arg name "$container_name" '.containerDefinitions[] | select(.name == $name).logConfiguration // {}')
+
+          # Extract log group and stream prefix from task definition
+          local log_driver=$(echo "$log_config" | jq -r '.logDriver // ""')
+
+          # Extract and trim whitespace from log group and stream prefix
+          local log_group=$(echo "$log_config" | jq -r '.options."awslogs-group" // ""' | xargs)
+          local log_stream_prefix=$(echo "$log_config" | jq -r '.options."awslogs-stream-prefix" // ""' | xargs)
+
+          if [ -n "$log_group" ]; then
+            # Construct the CloudWatch logs URL
+            local log_stream="${log_stream_prefix}/${container_name}/${task_id}"
+
+            # Trim whitespace and encode URL components
+            local encoded_log_group=$(echo "$log_group" | xargs | sed 's/\//%2F/g')
+            local encoded_log_stream=$(echo "$log_stream" | xargs | sed 's/\//%2F/g')
+
+            local logs_url="https://console.aws.amazon.com/cloudwatch/home?region=${region}#logsV2:log-groups/log-group/${encoded_log_group}/log-events/${encoded_log_stream}"
+
+            echo "${log_prefix}📝 Logs: ${log_group}/${log_stream}"
+            echo "${log_prefix}🔗 ${logs_url}"
+          else
+            echo "${log_prefix}📝 Logs: CloudWatch logs configured but no log group specified"
+          fi
+        done
+      done
+    else
+      echo "        └── No running tasks found for this service"
+    fi
+  done
+}
+
+# Quick access to stack events
+aws_stack_events() {
+  local stack_name=$1
+  local limit=${2:-20}
+
+  if [[ -z "$stack_name" ]]; then
+    echo "Usage: aws_stack_events STACK_NAME [LIMIT]"
+    return 1
+  fi
+
+  aws cloudformation describe-stack-events --stack-name $stack_name \
+    --query "StackEvents[0:$limit].{Timestamp:Timestamp,LogicalId:LogicalResourceId,Status:ResourceStatus,Reason:ResourceStatusReason}" \
+    --output table
+}

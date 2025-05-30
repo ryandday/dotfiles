@@ -1765,74 +1765,13 @@ function M.auto_load_pr_comments()
   vim.defer_fn(function()
     M.load_all_pr_comments()
     
-    -- After loading comments, eagerly open diffview buffers for files with comments
+    -- After loading comments, update signs for any currently loaded buffers
     if vim.tbl_count(state.comments_cache) > 0 then
       vim.defer_fn(function()
-        M.eagerly_load_diffview_buffers()
-      end, 500) -- Additional delay after comment loading
+        M.update_all_diffview_signs()
+      end, 500) -- Small delay after comment loading to update signs
     end
   end, 500)
-end
-
--- Eagerly load diffview buffers for files with PR comments
-function M.eagerly_load_diffview_buffers()
-  vim.notify("📂 Loading all PR file buffers...", vim.log.levels.INFO)
-  
-  local files_with_comments = {}
-  for file_path, comments in pairs(state.comments_cache) do
-    if #comments > 0 then
-      table.insert(files_with_comments, file_path)
-    end
-  end
-  
-  if #files_with_comments == 0 then
-    vim.notify("No files with comments to process", vim.log.levels.INFO)
-    return
-  end
-  
-  -- Get all files in the PR, not just ones with comments
-  local all_pr_files = M.get_pr_files()
-  if #all_pr_files == 0 then
-    vim.notify("No PR files found", vim.log.levels.WARN)
-    return
-  end
-  
-  -- Use diffview actions to tab through all files
-  local diffview_actions = require("diffview.actions")
-  
-  local function tab_through_files()
-    vim.notify(string.format("🔄 Tabbing through %d PR files to load buffers...", #all_pr_files), vim.log.levels.INFO)
-    
-    -- Start from the first file
-    diffview_actions.select_first_entry()
-    
-    -- Tab through all files twice - first pass loads LEFT sides, second pass loads RIGHT sides
-    for pass = 1, 2 do
-      for i = 1, #all_pr_files do
-        -- Simple fixed delay to let diffview process each file
-        vim.defer_fn(function()
-          if i < #all_pr_files then
-            diffview_actions.select_next_entry()
-          elseif pass == 1 then
-            -- After first pass, go back to first file for second pass
-            vim.defer_fn(function()
-              diffview_actions.select_first_entry()
-            end, 10)
-          else
-            -- After second pass, we're done - update signs
-            vim.defer_fn(function()
-              diffview_actions.select_first_entry() -- End on first file
-              M.update_all_diffview_signs()
-              vim.notify(string.format("✅ Loaded all buffers for %d PR files", #all_pr_files), vim.log.levels.INFO)
-            end, 300)
-          end
-        end, (pass - 1) * #all_pr_files * 200 + i * 200)  -- 200ms per file
-      end
-    end
-  end
-  
-  -- Start tabbing after initial delay
-  vim.defer_fn(tab_through_files, 500)
 end
 
 -- Update signs for all currently loaded buffers (both diffview and regular)

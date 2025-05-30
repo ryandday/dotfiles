@@ -1780,8 +1780,6 @@ function M.update_all_diffview_signs()
     return
   end
   
-  vim.notify("🔧 Placing comment signs on loaded buffers...", vim.log.levels.INFO)
-  
   local buffers_found = 0
   local signs_placed = 0
   
@@ -1885,12 +1883,6 @@ function M.update_all_diffview_signs()
         end
       end
     end
-  end
-  
-  vim.notify(string.format("📊 Found %d buffers with comments, placed %d signs total", buffers_found, signs_placed), vim.log.levels.INFO)
-  
-  if buffers_found == 0 then
-    vim.notify("💡 No buffers with comments found. Use <leader>gq to debug, or navigate to files manually", vim.log.levels.WARN)
   end
 end
 

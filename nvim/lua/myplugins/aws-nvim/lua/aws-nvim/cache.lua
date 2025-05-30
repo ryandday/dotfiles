@@ -177,4 +177,106 @@ function M.clean_expired()
   end
 end
 
+-- Save filters to a file
+function M.save_filters(filters)
+  -- Create cache directory if it doesn't exist
+  if vim.fn.isdirectory(M.cache_dir) == 0 then
+    vim.fn.mkdir(M.cache_dir, 'p')
+  end
+  
+  local filter_file = M.cache_dir .. "/filters.json"
+  
+  -- Convert filters to JSON
+  local json_str = vim.json.encode(filters)
+  
+  -- Write to file
+  local file = io.open(filter_file, "w")
+  if file then
+    file:write(json_str)
+    file:close()
+    return true
+  end
+  
+  return false
+end
+
+-- Load filters from file
+function M.load_filters()
+  -- Create cache directory if it doesn't exist
+  if vim.fn.isdirectory(M.cache_dir) == 0 then
+    vim.fn.mkdir(M.cache_dir, 'p')
+  end
+  
+  local filter_file = M.cache_dir .. "/filters.json"
+  
+  -- Check if file exists
+  local file = io.open(filter_file, "r")
+  if not file then
+    return {}
+  end
+  
+  -- Read file content
+  local content = file:read("*all")
+  file:close()
+  
+  -- Parse JSON
+  local success, filters = pcall(vim.json.decode, content)
+  if success and type(filters) == "table" then
+    return filters
+  end
+  
+  return {}
+end
+
+-- Save preferences to a file
+function M.save_preferences(preferences)
+  -- Create cache directory if it doesn't exist
+  if vim.fn.isdirectory(M.cache_dir) == 0 then
+    vim.fn.mkdir(M.cache_dir, 'p')
+  end
+  
+  local prefs_file = M.cache_dir .. "/preferences.json"
+  
+  -- Convert preferences to JSON
+  local json_str = vim.json.encode(preferences)
+  
+  -- Write to file
+  local file = io.open(prefs_file, "w")
+  if file then
+    file:write(json_str)
+    file:close()
+    return true
+  end
+  
+  return false
+end
+
+-- Load preferences from file
+function M.load_preferences()
+  -- Create cache directory if it doesn't exist
+  if vim.fn.isdirectory(M.cache_dir) == 0 then
+    vim.fn.mkdir(M.cache_dir, 'p')
+  end
+  
+  local prefs_file = M.cache_dir .. "/preferences.json"
+  
+  -- Check if file exists
+  local file = io.open(prefs_file, "r")
+  if not file then
+    return {}
+  end
+  
+  -- Read file content
+  local content = file:read("*all")
+  file:close()
+  
+  -- Parse JSON
+  local success, preferences = pcall(vim.json.decode, content)
+  if success and type(preferences) == "table" then
+    return preferences
+  end
+  
+  return {}
+end
+
 return M 

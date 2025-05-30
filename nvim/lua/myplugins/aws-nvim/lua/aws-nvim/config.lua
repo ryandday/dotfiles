@@ -40,7 +40,8 @@ M.state = {
   buffer = nil,
   window = nil,
   tree = {},
-  filter = nil
+  filter = nil,
+  saved_filters = {}
 }
 
 -- Setup function for user configuration
@@ -52,6 +53,24 @@ function M.setup(opts)
   local cache = require('aws-nvim.cache')
   cache.default_ttl = M.options.cache_ttl
   cache.init()
+  
+  -- Load last used profile and region if available
+  local preferences = cache.load_preferences()
+  if preferences.region then
+    M.options.region = preferences.region
+  end
+  if preferences.profile then
+    M.options.profile = preferences.profile
+  end
+end
+
+-- Save current profile and region preferences
+function M.save_preferences()
+  local cache = require('aws-nvim.cache')
+  cache.save_preferences({
+    region = M.options.region,
+    profile = M.options.profile
+  })
 end
 
 -- Get status icon based on resource status

@@ -16,9 +16,9 @@ return {
     },
     keys = {
       { "<leader>aws", "<cmd>AWSNvimOpen<cr>", desc = "Open AWS Explorer" },
-      { "<leader>awf", "<cmd>AWSNvimFilter ", desc = "Filter AWS Resources" },
-      { "<leader>awr", "<cmd>AWSNvimRegion ", desc = "Change AWS Region" },
-      { "<leader>awp", "<cmd>AWSNvimProfile ", desc = "Change AWS Profile" },
+      { "<leader>awf", "<cmd>AWSNvimFilter<cr>", desc = "Filter AWS Resources" },
+      { "<leader>awr", "<cmd>AWSNvimRegion<cr>", desc = "Change AWS Region" },
+      { "<leader>awp", "<cmd>AWSNvimProfile<cr>", desc = "Change AWS Profile" },
     },
     opts = {
       -- AWS settings

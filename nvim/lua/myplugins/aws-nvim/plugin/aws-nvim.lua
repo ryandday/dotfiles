@@ -23,11 +23,11 @@ end, {})
 
 vim.api.nvim_create_user_command('AWSNvimFilter', function(opts)
   require('aws-nvim').filter(opts.args)
-end, {nargs = 1})
+end, {nargs = '?'})
 
 vim.api.nvim_create_user_command('AWSNvimProfile', function(opts)
   require('aws-nvim').set_profile(opts.args)
-end, {nargs = 1})
+end, {nargs = '?'})
 
 vim.api.nvim_create_user_command('AWSNvimRegion', function(opts)
   require('aws-nvim').set_region(opts.args)

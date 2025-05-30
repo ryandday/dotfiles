@@ -370,4 +370,74 @@ function M.get_container_ssh_command(container_id, task_id, cluster_name, region
   end)
 end
 
+-- Get list of available AWS profiles
+function M.get_available_profiles(callback)
+  -- Check AWS_PROFILE environment variable
+  local env_profile = vim.fn.getenv("AWS_PROFILE")
+  local profiles = {}
+  
+  -- Handle vim.NIL properly
+  if env_profile ~= vim.NIL and env_profile ~= "" then
+    table.insert(profiles, env_profile)
+  end
+  
+  -- Add "default" profile
+  table.insert(profiles, "default")
+  
+  -- Read from credentials file
+  local credentials_file = vim.fn.expand("~/.aws/credentials")
+  if vim.fn.filereadable(credentials_file) == 1 then
+    local file = io.open(credentials_file, "r")
+    if file then
+      for line in file:lines() do
+        local profile_name = line:match("^%[([^%]]+)%]$")
+        if profile_name then
+          -- Don't add duplicates
+          local found = false
+          for _, p in ipairs(profiles) do
+            if p == profile_name then
+              found = true
+              break
+            end
+          end
+          if not found then
+            table.insert(profiles, profile_name)
+          end
+        end
+      end
+      file:close()
+    end
+  end
+  
+  -- Read from config file (for role profiles)
+  local config_file = vim.fn.expand("~/.aws/config")
+  if vim.fn.filereadable(config_file) == 1 then
+    local file = io.open(config_file, "r")
+    if file then
+      for line in file:lines() do
+        local profile_name = line:match("^%[profile%s+([^%]]+)%]$")
+        if profile_name then
+          -- Don't add duplicates
+          local found = false
+          for _, p in ipairs(profiles) do
+            if p == profile_name then
+              found = true
+              break
+            end
+          end
+          if not found then
+            table.insert(profiles, profile_name)
+          end
+        end
+      end
+      file:close()
+    end
+  end
+  
+  -- Sort profiles (now all entries are guaranteed to be strings)
+  table.sort(profiles)
+  
+  callback(profiles)
+end
+
 return M 

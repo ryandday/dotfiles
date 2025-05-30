@@ -246,7 +246,14 @@ return {
             { "n", "<down>",        function() require("diffview.actions").next_entry() end, { desc = "Bring the cursor to the next file entry" } },
             { "n", "k",             function() require("diffview.actions").prev_entry() end, { desc = "Bring the cursor to the previous file entry" } },
             { "n", "<up>",          function() require("diffview.actions").prev_entry() end, { desc = "Bring the cursor to the previous file entry" } },
-            { "n", "<cr>",          function() require("diffview.actions").select_entry() end, { desc = "Open the diff for the selected entry" } },
+            { "n", "<cr>",          function() 
+              require("diffview.actions").select_entry()
+              -- Small delay to ensure the diff view is loaded, then focus on it
+              vim.defer_fn(function()
+                vim.cmd("wincmd l") -- Move to the right window (diff view)
+                vim.cmd("wincmd l") -- Move to the right window (diff view)
+              end, 50)
+            end, { desc = "Open the diff for the selected entry and focus on it" } },
             { "n", "o",             function() require("diffview.actions").select_entry() end, { desc = "Open the diff for the selected entry" } },
             { "n", "l",             function() require("diffview.actions").select_entry() end, { desc = "Open the diff for the selected entry" } },
             { "n", "<2-LeftMouse>", function() require("diffview.actions").select_entry() end, { desc = "Open the diff for the selected entry" } },

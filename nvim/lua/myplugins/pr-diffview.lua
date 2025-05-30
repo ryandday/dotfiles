@@ -1507,6 +1507,12 @@ function M.setup(user_config)
     desc = 'View PR comments for current line',
     silent = true
   })
+
+  -- Setup key mapping for PR file comment summary
+  vim.keymap.set('n', '<leader>gl', function() M.view_pr_file_summary() end, {
+    desc = 'View PR file comment summary',
+    silent = true
+  })
 end
 
 -- Clear cached PR (useful for testing or switching branches)
@@ -3201,6 +3207,253 @@ function M.restore_explicit_layout()
   preview_state.original_buffer = nil
   preview_state.original_cursor = nil
   preview_state.is_explicit = false
+end
+
+-- View PR File Comment Summary
+function M.view_pr_file_summary()
+  local pr_number = M.get_current_pr()
+  if not pr_number then
+    vim.notify("❌ No active PR found. Cannot show file summary.", vim.log.levels.WARN)
+    return
+  end
+
+  if vim.tbl_isempty(state.comments_cache) then
+    vim.notify("ℹ️ Comment cache is empty. Please refresh comments first (e.g., with <leader>gR).", vim.log.levels.INFO)
+    return
+  end
+
+  vim.notify("📊 Generating PR file comment summary...", vim.log.levels.INFO)
+
+  local pr_files = M.get_pr_files()
+  if #pr_files == 0 then
+    vim.notify("📁 No files found in the current PR.", vim.log.levels.INFO)
+    return
+  end
+
+  local summary_lines = {}
+  local highlight_rules = {}
+
+  local function add_highlight_rule(line_idx, group, start_byte, end_byte)
+    table.insert(highlight_rules, {
+      line_offset = line_idx,
+      group = group,
+      start_col = start_byte,
+      end_col = end_byte
+    })
+  end
+
+  -- Line 1: Header
+  local header_text = "╭─📊 PR File Comment Summary ─╮"
+  table.insert(summary_lines, header_text)
+  add_highlight_rule(#summary_lines - 1, "PRCommentHeader", 0, vim.fn.strlen(header_text))
+
+  -- Line 2: PR Info
+  local pr_info_text = string.format("├─ PR #%d: %d files", pr_number, #pr_files)
+  table.insert(summary_lines, pr_info_text)
+  add_highlight_rule(#summary_lines - 1, "PRCommentMeta", 0, vim.fn.strlen(pr_info_text))
+
+  -- Line 3: Border
+  local border_char = "│"
+  table.insert(summary_lines, border_char)
+  add_highlight_rule(#summary_lines - 1, "PRCommentBorder", 0, vim.fn.strlen(border_char))
+
+  local total_left_comments = 0
+  local total_right_comments = 0
+  local files_with_comments_count = 0
+
+  for _, file_path in ipairs(pr_files) do
+    local file_comments_list = state.comments_cache[file_path] or {}
+    local left_count = 0
+    local right_count = 0
+
+    for _, comment in ipairs(file_comments_list) do
+      if comment.side == "LEFT" then
+        left_count = left_count + 1
+      elseif comment.side == "RIGHT" then
+        right_count = right_count + 1
+      end
+    end
+
+    if left_count > 0 or right_count > 0 then
+      files_with_comments_count = files_with_comments_count + 1
+    end
+    total_left_comments = total_left_comments + left_count
+    total_right_comments = total_right_comments + right_count
+
+    -- File Path Line
+    local line_idx_file = #summary_lines
+    local s_fp_prefix = "├─📄 "
+    local s_fp_suffix = ":"
+    local file_line_text = s_fp_prefix .. file_path .. s_fp_suffix
+    table.insert(summary_lines, file_line_text)
+    local current_byte_pos_fp = 0
+    add_highlight_rule(line_idx_file, "PRCommentBorder", current_byte_pos_fp, current_byte_pos_fp + vim.fn.strlen(s_fp_prefix:sub(1,1))) -- ├
+    current_byte_pos_fp = current_byte_pos_fp + vim.fn.strlen(s_fp_prefix:sub(1,1))
+    add_highlight_rule(line_idx_file, "PRCommentHeader", current_byte_pos_fp, current_byte_pos_fp + vim.fn.strlen(s_fp_prefix:sub(2))) -- ─📄 
+    current_byte_pos_fp = current_byte_pos_fp + vim.fn.strlen(s_fp_prefix:sub(2))
+    add_highlight_rule(line_idx_file, "PRCommentHeader", current_byte_pos_fp, current_byte_pos_fp + vim.fn.strlen(file_path)) -- filepath
+    current_byte_pos_fp = current_byte_pos_fp + vim.fn.strlen(file_path)
+    add_highlight_rule(line_idx_file, "PRCommentHeader", current_byte_pos_fp, current_byte_pos_fp + vim.fn.strlen(s_fp_suffix)) -- :
+    
+    -- Comment Count Line
+    local line_idx_count = #summary_lines
+    local s_cc_border1 = "│"
+    local s_cc_pad1 = "      "
+    local s_cc_left_label = "Left: "
+    local s_cc_left_val = string.format("%-3d", left_count)
+    local s_cc_sep_pad = " "
+    local s_cc_sep = "┊"
+    local s_cc_pad2 = " "
+    local s_cc_right_label = "Right: "
+    local s_cc_right_val = string.format("%-3d", right_count)
+    local s_cc_suffix = " comments"
+    
+    local count_line_text = s_cc_border1 .. s_cc_pad1 .. s_cc_left_label .. s_cc_left_val .. s_cc_sep_pad .. s_cc_sep .. s_cc_pad2 .. s_cc_right_label .. s_cc_right_val .. s_cc_suffix
+    table.insert(summary_lines, count_line_text)
+    local current_byte_pos_cc = 0
+
+    add_highlight_rule(line_idx_count, "PRCommentBorder", current_byte_pos_cc, current_byte_pos_cc + vim.fn.strlen(s_cc_border1))
+    current_byte_pos_cc = current_byte_pos_cc + vim.fn.strlen(s_cc_border1)
+    add_highlight_rule(line_idx_count, "PRCommentContent", current_byte_pos_cc, current_byte_pos_cc + vim.fn.strlen(s_cc_pad1 .. s_cc_left_label))
+    current_byte_pos_cc = current_byte_pos_cc + vim.fn.strlen(s_cc_pad1 .. s_cc_left_label)
+    add_highlight_rule(line_idx_count, "PRCommentCount", current_byte_pos_cc, current_byte_pos_cc + vim.fn.strlen(s_cc_left_val))
+    current_byte_pos_cc = current_byte_pos_cc + vim.fn.strlen(s_cc_left_val)
+    add_highlight_rule(line_idx_count, "PRCommentContent", current_byte_pos_cc, current_byte_pos_cc + vim.fn.strlen(s_cc_sep_pad))
+    current_byte_pos_cc = current_byte_pos_cc + vim.fn.strlen(s_cc_sep_pad)
+    add_highlight_rule(line_idx_count, "PRCommentBorder", current_byte_pos_cc, current_byte_pos_cc + vim.fn.strlen(s_cc_sep))
+    current_byte_pos_cc = current_byte_pos_cc + vim.fn.strlen(s_cc_sep)
+    add_highlight_rule(line_idx_count, "PRCommentContent", current_byte_pos_cc, current_byte_pos_cc + vim.fn.strlen(s_cc_pad2 .. s_cc_right_label))
+    current_byte_pos_cc = current_byte_pos_cc + vim.fn.strlen(s_cc_pad2 .. s_cc_right_label)
+    add_highlight_rule(line_idx_count, "PRCommentCount", current_byte_pos_cc, current_byte_pos_cc + vim.fn.strlen(s_cc_right_val))
+    current_byte_pos_cc = current_byte_pos_cc + vim.fn.strlen(s_cc_right_val)
+    add_highlight_rule(line_idx_count, "PRCommentContent", current_byte_pos_cc, current_byte_pos_cc + vim.fn.strlen(s_cc_suffix))
+  end
+
+  -- Totals Section Border
+  table.insert(summary_lines, border_char)
+  add_highlight_rule(#summary_lines - 1, "PRCommentBorder", 0, vim.fn.strlen(border_char))
+  
+  -- Total Line 1 (Left/Right)
+  local line_idx_total1 = #summary_lines
+  local s_t1_prefix = "├─ Total Left: "
+  local s_t1_left_val = tostring(total_left_comments)
+  local s_t1_infix = ", Total Right: "
+  local s_t1_right_val = tostring(total_right_comments)
+  local total_line_1 = s_t1_prefix .. s_t1_left_val .. s_t1_infix .. s_t1_right_val
+  table.insert(summary_lines, total_line_1)
+  local current_byte_pos_t1 = 0
+  add_highlight_rule(line_idx_total1, "PRCommentMeta", current_byte_pos_t1, current_byte_pos_t1 + vim.fn.strlen(s_t1_prefix))
+  current_byte_pos_t1 = current_byte_pos_t1 + vim.fn.strlen(s_t1_prefix)
+  add_highlight_rule(line_idx_total1, "PRCommentCount", current_byte_pos_t1, current_byte_pos_t1 + vim.fn.strlen(s_t1_left_val))
+  current_byte_pos_t1 = current_byte_pos_t1 + vim.fn.strlen(s_t1_left_val)
+  add_highlight_rule(line_idx_total1, "PRCommentMeta", current_byte_pos_t1, current_byte_pos_t1 + vim.fn.strlen(s_t1_infix))
+  current_byte_pos_t1 = current_byte_pos_t1 + vim.fn.strlen(s_t1_infix)
+  add_highlight_rule(line_idx_total1, "PRCommentCount", current_byte_pos_t1, current_byte_pos_t1 + vim.fn.strlen(s_t1_right_val))
+
+  -- Total Line 2 (Comments/Files)
+  local line_idx_total2 = #summary_lines
+  local total_comments_val = total_left_comments + total_right_comments
+  local s_t2_prefix = "├─ Total Comments: "
+  local s_t2_comments_val = tostring(total_comments_val)
+  local s_t2_infix = " on "
+  local s_t2_files_val = tostring(files_with_comments_count)
+  local s_t2_suffix = " file(s)"
+  local total_line_2 = s_t2_prefix .. s_t2_comments_val .. s_t2_infix .. s_t2_files_val .. s_t2_suffix
+  table.insert(summary_lines, total_line_2)
+  local current_byte_pos_t2 = 0
+  add_highlight_rule(line_idx_total2, "PRCommentMeta", current_byte_pos_t2, current_byte_pos_t2 + vim.fn.strlen(s_t2_prefix))
+  current_byte_pos_t2 = current_byte_pos_t2 + vim.fn.strlen(s_t2_prefix)
+  add_highlight_rule(line_idx_total2, "PRCommentCount", current_byte_pos_t2, current_byte_pos_t2 + vim.fn.strlen(s_t2_comments_val))
+  current_byte_pos_t2 = current_byte_pos_t2 + vim.fn.strlen(s_t2_comments_val)
+  add_highlight_rule(line_idx_total2, "PRCommentMeta", current_byte_pos_t2, current_byte_pos_t2 + vim.fn.strlen(s_t2_infix))
+  current_byte_pos_t2 = current_byte_pos_t2 + vim.fn.strlen(s_t2_infix)
+  add_highlight_rule(line_idx_total2, "PRCommentCount", current_byte_pos_t2, current_byte_pos_t2 + vim.fn.strlen(s_t2_files_val))
+  current_byte_pos_t2 = current_byte_pos_t2 + vim.fn.strlen(s_t2_files_val)
+  add_highlight_rule(line_idx_total2, "PRCommentMeta", current_byte_pos_t2, current_byte_pos_t2 + vim.fn.strlen(s_t2_suffix))
+
+  -- Final Border
+  local footer_text = "╰─────────────────────────────╯"
+  table.insert(summary_lines, footer_text)
+  add_highlight_rule(#summary_lines -1, "PRCommentBorder", 0, vim.fn.strlen(footer_text))
+
+  -- Create window for summary
+  local width = 60 -- Hardcoded narrow width
+  local max_height = math.floor(vim.o.lines * 0.9)
+  local calculated_height = #summary_lines + 2 
+  local height = math.min(calculated_height, max_height)
+
+  local original_win = vim.api.nvim_get_current_win()
+
+  local win_config = {
+    relative = 'editor',
+    width = width,
+    height = height,
+    row = math.floor((vim.o.lines - height) / 2),
+    col = math.floor((vim.o.columns - width) / 2),
+    style = 'minimal',
+    border = M.config.floating_window.border or "rounded",
+    title = " PR File Summary ",
+    title_pos = "center",
+    focusable = true,
+    zindex = 50
+  }
+
+  local buf = vim.api.nvim_create_buf(false, true)
+  local win = vim.api.nvim_open_win(buf, true, win_config)
+
+  vim.api.nvim_win_set_option(win, 'winhighlight', 'Normal:Normal,FloatBorder:PRCommentBorder')
+
+  vim.api.nvim_buf_set_option(buf, 'buftype', 'nofile')
+  vim.api.nvim_buf_set_option(buf, 'swapfile', false)
+  vim.api.nvim_buf_set_option(buf, 'bufhidden', 'wipe')
+  vim.api.nvim_buf_set_option(buf, 'filetype', 'markdown')
+  vim.api.nvim_buf_set_name(buf, 'PR File Summary')
+
+  vim.api.nvim_win_set_option(win, 'wrap', false)
+  vim.api.nvim_win_set_option(win, 'linebreak', false)
+  vim.api.nvim_win_set_option(win, 'cursorline', false)
+  vim.api.nvim_win_set_option(win, 'number', false)
+  vim.api.nvim_win_set_option(win, 'relativenumber', false)
+  vim.api.nvim_win_set_option(win, 'signcolumn', 'no')
+  vim.api.nvim_win_set_option(win, 'winfixwidth', true)
+  vim.api.nvim_win_set_option(win, 'winfixheight', true)
+
+  vim.api.nvim_buf_set_lines(buf, 0, -1, false, summary_lines)
+  
+  for _, hl_rule in ipairs(highlight_rules) do
+    vim.api.nvim_buf_add_highlight(buf, -1, hl_rule.group, hl_rule.line_offset, hl_rule.start_col, hl_rule.end_col)
+  end
+
+  vim.api.nvim_buf_set_option(buf, 'modifiable', false)
+  vim.api.nvim_buf_set_option(buf, 'readonly', true)
+
+  local function close_summary_window()
+    if vim.api.nvim_win_is_valid(win) then
+      vim.api.nvim_win_close(win, true)
+    end
+    if original_win and vim.api.nvim_win_is_valid(original_win) then
+      vim.api.nvim_set_current_win(original_win)
+    end
+  end
+
+  vim.api.nvim_buf_set_keymap(buf, 'n', 'q', '', {
+    callback = close_summary_window,
+    noremap = true, silent = true, desc = 'Close PR File Summary'
+  })
+  vim.api.nvim_buf_set_keymap(buf, 'n', '<Esc>', '', {
+    callback = close_summary_window,
+    noremap = true, silent = true, desc = 'Close PR File Summary'
+  })
+
+  vim.api.nvim_create_autocmd({"BufLeave", "WinLeave"}, {
+    buffer = buf,
+    callback = close_summary_window,
+    once = true
+  })
+  
+  vim.api.nvim_set_current_win(win)
+
+  vim.notify("✅ PR File Comment Summary displayed.", vim.log.levels.INFO)
 end
 
 -- Export functions for external use

@@ -309,6 +309,12 @@ function M.render_tree()
     return
   end
   
+  -- Save current cursor position
+  local cursor_pos = nil
+  if config.state.window and vim.api.nvim_win_is_valid(config.state.window) then
+    cursor_pos = vim.api.nvim_win_get_cursor(config.state.window)
+  end
+  
   -- Generate lines to display
   local lines = {}
   
@@ -399,6 +405,16 @@ function M.render_tree()
   
   -- Update the buffer with the rendered lines
   M.update_buffer(lines)
+  
+  -- Restore cursor position if possible
+  if cursor_pos and config.state.window and vim.api.nvim_win_is_valid(config.state.window) then
+    -- Make sure cursor position is within bounds
+    local line_count = vim.api.nvim_buf_line_count(config.state.buffer)
+    if cursor_pos[1] > line_count then
+      cursor_pos[1] = line_count
+    end
+    vim.api.nvim_win_set_cursor(config.state.window, cursor_pos)
+  end
 end
 
 -- Update the buffer content
@@ -504,6 +520,81 @@ end
 
 -- Set AWS region
 function M.set_region(region)
+  -- If region is not provided, show a picker with all available regions
+  if not region or region == "" then
+    -- List of all AWS regions
+    local regions = {
+      "us-east-1",      -- US East (N. Virginia)
+      "us-east-2",      -- US East (Ohio)
+      "us-west-1",      -- US West (N. California)
+      "us-west-2",      -- US West (Oregon)
+      "af-south-1",     -- Africa (Cape Town)
+      "ap-east-1",      -- Asia Pacific (Hong Kong)
+      "ap-south-1",     -- Asia Pacific (Mumbai)
+      "ap-northeast-1", -- Asia Pacific (Tokyo)
+      "ap-northeast-2", -- Asia Pacific (Seoul)
+      "ap-northeast-3", -- Asia Pacific (Osaka)
+      "ap-southeast-1", -- Asia Pacific (Singapore)
+      "ap-southeast-2", -- Asia Pacific (Sydney)
+      "ap-southeast-3", -- Asia Pacific (Jakarta)
+      "ca-central-1",   -- Canada (Central)
+      "eu-central-1",   -- Europe (Frankfurt)
+      "eu-west-1",      -- Europe (Ireland)
+      "eu-west-2",      -- Europe (London)
+      "eu-west-3",      -- Europe (Paris)
+      "eu-north-1",     -- Europe (Stockholm)
+      "eu-south-1",     -- Europe (Milan)
+      "me-south-1",     -- Middle East (Bahrain)
+      "sa-east-1"       -- South America (São Paulo)
+    }
+    
+    -- Format regions with descriptions for the picker
+    local choices = {}
+    for _, r in ipairs(regions) do
+      local description = r
+      if r == "us-east-1" then
+        description = r .. " (US East, N. Virginia)"
+      elseif r == "us-east-2" then
+        description = r .. " (US East, Ohio)"
+      elseif r == "us-west-1" then
+        description = r .. " (US West, N. California)"
+      elseif r == "us-west-2" then
+        description = r .. " (US West, Oregon)"
+      elseif r == "eu-west-1" then
+        description = r .. " (Europe, Ireland)"
+      elseif r == "eu-central-1" then
+        description = r .. " (Europe, Frankfurt)"
+      elseif r == "ap-northeast-1" then
+        description = r .. " (Asia Pacific, Tokyo)"
+      elseif r == "ap-southeast-1" then
+        description = r .. " (Asia Pacific, Singapore)"
+      elseif r == "ap-southeast-2" then
+        description = r .. " (Asia Pacific, Sydney)"
+      end
+      table.insert(choices, { region = r, description = description })
+    end
+    
+    -- Show region selection menu
+    vim.ui.select(choices, {
+      prompt = "Select AWS Region",
+      format_item = function(item)
+        return item.description
+      end
+    }, function(choice)
+      if choice then
+        -- Apply the selected region
+        config.options.region = choice.region
+        -- Clear cache when changing region
+        cache.clear()
+        M.load_stacks()
+        -- Show confirmation message
+        vim.api.nvim_echo({{"Region changed to " .. choice.region, "Normal"}}, false, {})
+      end
+    end)
+    return
+  end
+  
+  -- If region is provided directly, set it
   config.options.region = region
   -- Clear cache when changing region
   cache.clear()

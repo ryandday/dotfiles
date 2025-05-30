@@ -31,7 +31,7 @@ end, {nargs = 1})
 
 vim.api.nvim_create_user_command('AWSNvimRegion', function(opts)
   require('aws-nvim').set_region(opts.args)
-end, {nargs = 1})
+end, {nargs = '?'})
 
 -- Create auto commands for the AWS explorer buffer
 local aws_group = vim.api.nvim_create_augroup('aws_nvim', { clear = true })

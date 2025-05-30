@@ -101,7 +101,7 @@ end
 function M.list_stack_services(stack_id, stack_name, region, profile, callback)
   -- First get ECS services from the stack resources
   local cmd = "cloudformation list-stack-resources --stack-name " .. stack_name .. 
-              " --query \"StackResourceSummaries[?ResourceType==`AWS::ECS::Service`].[LogicalResourceId,PhysicalResourceId]\""
+              " --query 'StackResourceSummaries[?ResourceType==\"AWS::ECS::Service\"].[LogicalResourceId,PhysicalResourceId]'"
   
   M.run_aws_command(cmd, region, profile, function(err, result)
     if err then

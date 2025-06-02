@@ -27,7 +27,8 @@ return {
   {
     "j-hui/fidget.nvim",
     tag = "legacy", -- Use legacy version for compatibility
-    event = "VeryLazy",
+    lazy = false, -- Load eagerly to ensure it's available for CodeCompanion
+    priority = 1000, -- High priority to load early
     config = function()
       require("fidget").setup({
         text = {

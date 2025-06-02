@@ -172,9 +172,9 @@ local function switch_to_worktree()
     local create_result = vim.fn.system(new_session_cmd)
     
     if vim.v.shell_error == 0 then
-      -- Start vim in the new session
-      local vim_cmd = string.format("tmux send-keys -t %s 'vim .' Enter", selected_name)
-      vim.fn.system(vim_cmd)
+      -- First update submodules, then start vim in the new session
+      local submodule_cmd = string.format("tmux send-keys -t %s 'git submodule update --init --recursive --jobs 8 && vim .' Enter", selected_name)
+      vim.fn.system(submodule_cmd)
     else
       vim.notify("Failed to create tmux session: " .. create_result, vim.log.levels.ERROR)
       return
@@ -441,11 +441,11 @@ function M.add_worktree()
         local create_result = vim.fn.system(new_session_cmd)
         
         if vim.v.shell_error == 0 then
-          -- Start vim in the new session
-          local vim_cmd = string.format("tmux send-keys -t %s 'vim .' Enter", selected_name)
-          vim.fn.system(vim_cmd)
+          -- First update submodules, then start vim in the new session
+          local submodule_cmd = string.format("tmux send-keys -t %s 'git submodule update --init --recursive --jobs 8 && vim .' Enter", selected_name)
+          vim.fn.system(submodule_cmd)
           
-          -- Switch to the session
+          -- Switch to the session (only switch tmux, don't change current pwd)
           local switch_cmd = string.format("tmux switch-client -t %s", selected_name)
           local switch_result = vim.fn.system(switch_cmd)
           
@@ -456,12 +456,10 @@ function M.add_worktree()
           end
         else
           vim.notify("Failed to create tmux session: " .. create_result, vim.log.levels.ERROR)
-          -- Fallback to simple cd
-          vim.cmd("cd " .. worktree_path)
         end
       else
-        -- Fallback to simple cd if not in tmux
-        vim.cmd("cd " .. worktree_path)
+        -- If not in tmux, just notify that the worktree was created
+        vim.notify("Worktree created. Not in tmux, so staying in current directory.", vim.log.levels.INFO)
       end
     end
   else

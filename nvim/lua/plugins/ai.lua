@@ -105,118 +105,12 @@ return {
           chat = {
             adapter = provider,
             system_prompt = "You are an AI coding assistant with access to powerful tools. When appropriate, automatically use:\n- @lsp for code analysis and diagnostics\n- @files for reading/writing files\n- @editor for code modifications\n- @git for version control operations\n- @cmd_runner for running commands\n- @web_search for research\n\nUse tools proactively when they would help answer questions or solve problems, even if not explicitly requested.",
-            tools = {
-              ["files"] = {
-                callback = "codecompanion.tools.files",
-                description = "Assistant can work with files on the filesystem",
-                opts = {
-                  requires_approval = true,
-                  auto_submit = false,
-                },
-              },
-              ["cmd_runner"] = {
-                callback = "codecompanion.tools.cmd_runner",
-                description = "Assistant can run shell commands",
-                opts = {
-                  requires_approval = true,
-                  auto_submit = false,
-                },
-              },
-              ["editor"] = {
-                callback = "codecompanion.tools.editor",
-                description = "Assistant can edit code in Neovim buffers",
-                opts = {
-                  requires_approval = false,
-                  auto_submit = true,
-                },
-              },
-              ["web_search"] = {
-                callback = "codecompanion.tools.web_search",
-                description = "Assistant can search the web for information",
-                opts = {
-                  requires_approval = true,
-                  auto_submit = false,
-                },
-              },
-              ["git"] = {
-                callback = "codecompanion.tools.git",
-                description = "Assistant can work with Git repositories",
-                opts = {
-                  requires_approval = true,
-                  auto_submit = false,
-                },
-              },
-              ["lsp"] = {
-                callback = "codecompanion.tools.lsp",
-                description = "Assistant can access LSP information and diagnostics",
-                opts = {
-                  requires_approval = false,
-                  auto_submit = true,
-                },
-              },
-              -- Optional: MCP (Model Context Protocol) integration
-              -- Uncomment and install mcphub.nvim for additional tools
-              -- ["mcp"] = {
-              --   callback = function() return require("mcphub.extensions.codecompanion") end,
-              --   description = "Call tools and resources from MCP Servers",
-              --   opts = {
-              --     requires_approval = true,
-              --   },
-              -- },
-            },
           },
           inline = {
             adapter = provider,
           },
           agent = {
             adapter = provider,
-            tools = {
-              ["files"] = {
-                callback = "codecompanion.tools.files",
-                description = "Assistant can work with files on the filesystem",
-                opts = {
-                  requires_approval = true,
-                },
-              },
-              ["cmd_runner"] = {
-                callback = "codecompanion.tools.cmd_runner",
-                description = "Assistant can run shell commands",
-                opts = {
-                  requires_approval = true,
-                },
-              },
-              ["editor"] = {
-                callback = "codecompanion.tools.editor",
-                description = "Assistant can edit code in Neovim buffers",
-              },
-              ["web_search"] = {
-                callback = "codecompanion.tools.web_search",
-                description = "Assistant can search the web for information",
-                opts = {
-                  requires_approval = true,
-                },
-              },
-              ["git"] = {
-                callback = "codecompanion.tools.git",
-                description = "Assistant can work with Git repositories",
-                opts = {
-                  requires_approval = true,
-                },
-              },
-              ["lsp"] = {
-                callback = "codecompanion.tools.lsp",
-                description = "Assistant can access LSP information and diagnostics",
-              },
-              -- Optional: MCP (Model Context Protocol) integration
-              -- Uncomment and install mcphub.nvim for additional tools
-              -- ["mcp"] = {
-              --   callback = function() return require("mcphub.extensions.codecompanion") end,
-              --   description = "Call tools and resources from MCP Servers",
-              --   opts = {
-              --     requires_approval = true,
-              --   },
-              -- },
-            },
           },
         },
         adapters = {
@@ -235,9 +129,6 @@ return {
                 temperature = {
                   default = 0.1,
                 },
-                tools = {
-                  default = "required",
-                },
               },
             })
           end,
@@ -246,9 +137,6 @@ return {
               schema = {
                 model = {
                   default = "claude-3.7-sonnet", -- Latest Claude model available
-                },
-                tools = {
-                  default = "required",
                 },
               },
             })
@@ -268,9 +156,6 @@ return {
                 temperature = {
                   default = 0.1,
                 },
-                tools = {
-                  default = "required",
-                },
               },
             })
           end,
@@ -288,9 +173,6 @@ return {
                 },
                 temperature = {
                   default = 0.1,
-                },
-                tools = {
-                  default = "required",
                 },
               },
             })

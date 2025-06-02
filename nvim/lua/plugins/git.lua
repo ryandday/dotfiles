@@ -56,8 +56,9 @@ return {
       { "<leader>gC", "<cmd>DiffviewClose<cr>", desc = "Close Diffview" },
       { "<leader>gH", "<cmd>DiffviewFileHistory<cr>", desc = "File History" },
       { "<leader>gh", "<cmd>DiffviewFileHistory %<cr>", desc = "Current File History" },
+      { "<leader>gm", "<cmd>DiffviewOpen<cr>", desc = "Open Normal Diffview" },
       { 
-        "<leader>gm", 
+        "<leader>gM", 
         function()
           -- Function to find main/master branch and open diffview against it
           local function get_main_branch()
@@ -104,7 +105,7 @@ return {
             vim.notify("No main/master branch found (checked origin/main, origin/master, main, master)", vim.log.levels.WARN)
           end
         end,
-        desc = "Diffview vs Origin Main/Master"
+        desc = "Diffview vs Origin Main/Master with PR Comments"
       },
     },
     config = function()

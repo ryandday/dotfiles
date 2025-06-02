@@ -119,13 +119,12 @@ return {
       local provider = os.getenv("CODECOMPANION_PROVIDER") or "gemini"
       
       -- Enable auto-approval of tool usage
-      vim.g.codecompanion_auto_approve = true
+      vim.g.codecompanion_auto_tool_mode = true
       
       require("codecompanion").setup({
         strategies = {
           chat = {
             adapter = provider,
-            system_prompt = "You are an AI coding assistant with access to powerful tools. When appropriate, automatically use:\n- @lsp for code analysis and diagnostics\n- @files for reading/writing files\n- @editor for code modifications\n- @git for version control operations\n- @cmd_runner for running commands\n- @web_search for research\n\nUse tools proactively when they would help answer questions or solve problems, even if not explicitly requested.",
           },
           inline = {
             adapter = provider,
@@ -164,46 +163,13 @@ return {
           end,
         },
         opts = {
-          log_level = "DEBUG", -- Set to "DEBUG" for troubleshooting
+          log_level = "ERROR", -- Set to "DEBUG" for troubleshooting
           send_code = true, -- Send code context to the LLM
           use_default_actions = true, -- Use the default actions
           use_default_prompts = true, -- Use the default prompts
           use_default_tools = true, -- Enable default tools
-          auto_use_tools = true, -- Automatically suggest tools when appropriate
-          tool_choice = "auto", -- Let AI decide when to use tools
-          auto_approve_edits = true, -- Auto-approve edits without confirmation
-          disable_diff = true, -- Disable diff mode for faster execution
-          auto_approve_tools = true, -- Auto-approve ALL tools including risky ones
-        },
-        workflows = {
-          ["Fix Issues"] = {
-            strategy = "agent",
-            description = "Analyze and fix code issues using multiple tools",
-            prompts = {
-              {
-                role = "system", 
-                content = "You are a coding assistant. Use @lsp to find issues, @files to read code, @editor to make fixes, and @cmd_runner to test changes.",
-              },
-              {
-                role = "user",
-                content = "Please analyze this file for issues and fix them systematically.",
-              },
-            },
-          },
-          ["Project Setup"] = {
-            strategy = "agent", 
-            description = "Set up a new project with proper structure",
-            prompts = {
-              {
-                role = "system",
-                content = "You are a project setup assistant. Use @files to create structure, @git to initialize repo, and @cmd_runner to install dependencies.",
-              },
-              {
-                role = "user", 
-                content = "Set up a new project with the structure I describe.",
-              },
-            },
-          },
+          auto_submit_errors = true, -- Auto-submit errors without confirmation
+          auto_submit_success = true, -- Auto-submit success without confirmation
         },
         display = {
           action_palette = {
@@ -242,10 +208,10 @@ return {
           ["<leader>ad"] = "cmd:CodeCompanionChat Add", -- Add selection to chat (FIXED)
           ["<leader>ac"] = "cmd:CodeCompanionActions", -- Open action palette
         },
-        -- Disable inline suggestions to avoid conflicts
-        inline = {
-          layout = "vertical", -- vertical|horizontal|buffer
-        },
+        -- -- Disable inline suggestions to avoid conflicts
+        -- inline = {
+        --   layout = "vertical", -- vertical|horizontal|buffer
+        -- },
       })
     end,
     cmd = {

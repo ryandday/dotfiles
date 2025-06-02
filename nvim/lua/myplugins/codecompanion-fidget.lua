@@ -1,8 +1,6 @@
 -- fidget.nvim integration for CodeCompanion
 -- Lifted from: https://github.com/olimorris/codecompanion.nvim/discussions/813#discussioncomment-12031954
 
-local progress = require("fidget.progress")
-
 local M = {}
 
 function M:init()
@@ -12,8 +10,12 @@ function M:init()
     pattern = "CodeCompanionRequestStarted",
     group = group,
     callback = function(request)
-      local handle = M:create_progress_handle(request)
-      M:store_progress_handle(request.data.bufnr or "default", handle)
+      local client_name = M:get_client_name(request)
+      require("fidget").notify("Requesting assistance...", vim.log.levels.INFO, {
+        key = "codecompanion_" .. (request.data.bufnr or "default"),
+        annote = client_name,
+        group = "CodeCompanion",
+      })
     end,
   })
 
@@ -21,11 +23,13 @@ function M:init()
     pattern = "CodeCompanionRequestFinished",
     group = group,
     callback = function(request)
-      local handle = M:pop_progress_handle(request.data.bufnr or "default")
-      if handle then
-        M:report_exit_status(handle, request)
-        handle:finish()
-      end
+      local status_message = M:get_status_message(request, " Completed")
+      require("fidget").notify(status_message, vim.log.levels.INFO, {
+        key = "codecompanion_" .. (request.data.bufnr or "default"),
+        annote = M:get_client_name(request),
+        group = "CodeCompanion",
+        ttl = 3, -- Show completion message for 3 seconds
+      })
     end,
   })
 
@@ -33,11 +37,12 @@ function M:init()
     pattern = "CodeCompanionRequestError",
     group = group,
     callback = function(request)
-      local handle = M:pop_progress_handle(request.data.bufnr or "default")
-      if handle then
-        handle.message = " Error"
-        handle:finish()
-      end
+      require("fidget").notify(" Error", vim.log.levels.ERROR, {
+        key = "codecompanion_" .. (request.data.bufnr or "default"),
+        annote = M:get_client_name(request),
+        group = "CodeCompanion",
+        ttl = 5, -- Show error message for 5 seconds
+      })
     end,
   })
 
@@ -45,28 +50,17 @@ function M:init()
     pattern = "CodeCompanionRequestCancelled",
     group = group,
     callback = function(request)
-      local handle = M:pop_progress_handle(request.data.bufnr or "default")
-      if handle then
-        handle.message = "󰜺 Cancelled"
-        handle:finish()
-      end
+      require("fidget").notify("󰜺 Cancelled", vim.log.levels.WARN, {
+        key = "codecompanion_" .. (request.data.bufnr or "default"),
+        annote = M:get_client_name(request),
+        group = "CodeCompanion",
+        ttl = 3, -- Show cancellation message for 3 seconds
+      })
     end,
   })
 end
 
-M.handles = {}
-
-function M:store_progress_handle(id, handle)
-  M.handles[id] = handle
-end
-
-function M:pop_progress_handle(id)
-  local handle = M.handles[id]
-  M.handles[id] = nil
-  return handle
-end
-
-function M:create_progress_handle(request)
+function M:get_client_name(request)
   -- Get chat information if available
   local chat = nil
   if request.data.bufnr then
@@ -76,22 +70,11 @@ function M:create_progress_handle(request)
     end
   end
 
-  local title = " Requesting assistance"
-  local client_name = "CodeCompanion"
-  
-  if chat then
-    if chat.adapter then
-      client_name = M:llm_role_title(chat.adapter)
-    end
+  if chat and chat.adapter then
+    return M:llm_role_title(chat.adapter)
   end
-
-  return progress.handle.create({
-    title = title,
-    message = "In progress...",
-    lsp_client = {
-      name = client_name,
-    },
-  })
+  
+  return "CodeCompanion"
 end
 
 function M:llm_role_title(adapter)
@@ -117,13 +100,13 @@ function M:llm_role_title(adapter)
   return #parts > 0 and table.concat(parts, " ") or "CodeCompanion"
 end
 
-function M:report_exit_status(handle, request)
+function M:get_status_message(request, default_message)
   if request.data and request.data.status == "success" then
-    handle.message = " Completed"
+    return " Completed"
   elseif request.data and request.data.status == "error" then
-    handle.message = " Error"
+    return " Error"
   else
-    handle.message = " Finished"
+    return default_message
   end
 end
 

@@ -26,47 +26,53 @@ return {
   -- Progress notifications with fidget.nvim
   {
     "j-hui/fidget.nvim",
-    tag = "legacy", -- Use legacy version for compatibility
     lazy = false, -- Load eagerly to ensure it's available for CodeCompanion
     priority = 1000, -- High priority to load early
     config = function()
       require("fidget").setup({
-        text = {
-          spinner = "dots_negative", -- Spinner animation style
-          done = "", -- Character shown when all tasks are complete
-          commenced = "Started", -- Message shown when task starts
-          completed = "Completed", -- Message shown when task completes
+        -- Options related to notification subsystem
+        notification = {
+          poll_rate = 10,               -- How frequently to update and render notifications
+          filter = vim.log.levels.INFO, -- Minimum notifications level
+          override_vim_notify = false,  -- Don't automatically override vim.notify()
+          view = {
+            stack_upwards = true,       -- Display notification items from bottom to top
+            icon_separator = " ",       -- Separator between group name and icon
+            group_separator = "---",    -- Separator between notification groups
+            group_separator_hl = "Comment", -- Highlight group used for group separator
+          },
+          window = {
+            normal_hl = "Comment",      -- Base highlight group in the notification window
+            winblend = 100,             -- Background color opacity in the notification window
+            border = "none",            -- Border around the notification window
+            zindex = 45,                -- Stacking priority of the notification window
+            max_width = 0,              -- Maximum width of the notification window
+            max_height = 0,             -- Maximum height of the notification window
+            x_padding = 1,              -- Padding from right edge of window boundary
+            y_padding = 0,              -- Padding from bottom edge of window boundary
+            align = "bottom",           -- How to align the notification window
+            relative = "editor",        -- What the notification window position is relative to
+          },
         },
-        align = {
-          bottom = true, -- Align notifications to bottom
-          right = true,  -- Align notifications to right
-        },
-        timer = {
-          spinner_rate = 125, -- Frame rate for spinner animation
-          fidget_decay = 2000, -- How long to keep around empty fidget, in ms
-          task_decay = 1000, -- How long to keep around completed task, in ms
-        },
-        window = {
-          relative = "win", -- where to anchor, either "win" or "editor"
-          blend = 100,      -- &winblend for the window
-          zindex = nil,     -- the zindex value for the window
-          border = "none",  -- style of border for the fidget window
-        },
-        fmt = {
-          leftpad = true, -- right-justify text in fidget box
-          stack_upwards = true, -- list of tasks grows upwards
-          max_width = 0, -- maximum width of the fidget box
-          fidget = function(fidget_name, spinner)
-            return string.format("%s %s", spinner, fidget_name)
-          end,
-          task = function(task_name, message, percentage)
-            return string.format(
-              "%s%s [%s]",
-              message,
-              percentage and string.format(" (%s%%)", percentage) or "",
-              task_name
-            )
-          end,
+        -- Options related to LSP progress subsystem
+        progress = {
+          poll_rate = 0,                -- How and when to poll for progress messages
+          suppress_on_insert = false,   -- Suppress new messages while in insert mode
+          ignore_done_already = false,  -- Ignore new tasks that are already complete
+          ignore_empty_message = false, -- Ignore new tasks that don't contain a message
+          display = {
+            render_limit = 16,          -- How many LSP messages to show at once
+            done_ttl = 3,               -- How long a message should persist after completion
+            done_icon = "✔",            -- Icon shown when all LSP progress tasks are complete
+            done_style = "Constant",    -- Highlight group for completed LSP tasks
+            progress_ttl = math.huge,   -- How long a message should persist when in progress
+            progress_icon = { "dots" }, -- Icon shown when LSP progress tasks are in progress
+            progress_style = "WarningMsg", -- Highlight group for in-progress LSP tasks
+            group_style = "Title",      -- Highlight group for group name (LSP server name)
+            icon_style = "Question",    -- Highlight group for group icons
+            priority = 30,              -- Ordering priority for LSP notification group
+            skip_history = true,        -- Whether progress notifications should be omitted from history
+          },
         },
       })
     end,

@@ -23,6 +23,54 @@ return {
     lazy = true,
   },
 
+  -- Progress notifications with fidget.nvim
+  {
+    "j-hui/fidget.nvim",
+    tag = "legacy", -- Use legacy version for compatibility
+    event = "VeryLazy",
+    config = function()
+      require("fidget").setup({
+        text = {
+          spinner = "dots_negative", -- Spinner animation style
+          done = "", -- Character shown when all tasks are complete
+          commenced = "Started", -- Message shown when task starts
+          completed = "Completed", -- Message shown when task completes
+        },
+        align = {
+          bottom = true, -- Align notifications to bottom
+          right = true,  -- Align notifications to right
+        },
+        timer = {
+          spinner_rate = 125, -- Frame rate for spinner animation
+          fidget_decay = 2000, -- How long to keep around empty fidget, in ms
+          task_decay = 1000, -- How long to keep around completed task, in ms
+        },
+        window = {
+          relative = "win", -- where to anchor, either "win" or "editor"
+          blend = 100,      -- &winblend for the window
+          zindex = nil,     -- the zindex value for the window
+          border = "none",  -- style of border for the fidget window
+        },
+        fmt = {
+          leftpad = true, -- right-justify text in fidget box
+          stack_upwards = true, -- list of tasks grows upwards
+          max_width = 0, -- maximum width of the fidget box
+          fidget = function(fidget_name, spinner)
+            return string.format("%s %s", spinner, fidget_name)
+          end,
+          task = function(task_name, message, percentage)
+            return string.format(
+              "%s%s [%s]",
+              message,
+              percentage and string.format(" (%s%%)", percentage) or "",
+              task_name
+            )
+          end,
+        },
+      })
+    end,
+  },
+
   -- Markdown rendering
   {
     "MeanderingProgrammer/render-markdown.nvim",
@@ -108,6 +156,7 @@ return {
       "nvim-telescope/telescope.nvim", -- Optional: for enhanced picking
       "stevearc/dressing.nvim", -- Optional: for enhanced UI
       "echasnovski/mini.diff",
+      "j-hui/fidget.nvim", -- For progress notifications
       {
         "zbirenbaum/copilot.lua",
         cond = function()
@@ -214,6 +263,9 @@ return {
         --   layout = "vertical", -- vertical|horizontal|buffer
         -- },
       })
+      
+      -- Initialize fidget integration for CodeCompanion progress notifications
+      require("myplugins.codecompanion-fidget"):init()
     end,
     cmd = {
       "CodeCompanion",

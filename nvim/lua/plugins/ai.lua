@@ -265,7 +265,15 @@ return {
       })
       
       -- Initialize fidget integration for CodeCompanion progress notifications
-      require("myplugins.codecompanion-fidget"):init()
+      -- Ensure fidget.nvim is loaded before initializing the integration
+      vim.defer_fn(function()
+        local fidget_ok, _ = pcall(require, "fidget")
+        if fidget_ok then
+          require("myplugins.codecompanion-fidget"):init()
+        else
+          vim.notify("fidget.nvim not loaded, skipping CodeCompanion fidget integration", vim.log.levels.WARN)
+        end
+      end, 100) -- Small delay to ensure fidget is loaded
     end,
     cmd = {
       "CodeCompanion",

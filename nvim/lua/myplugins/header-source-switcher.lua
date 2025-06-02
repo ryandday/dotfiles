@@ -48,10 +48,14 @@ local function clear_preference_for_current_file()
   
   local pref_key = get_preference_key(current_file)
   if preferences[pref_key] then
+    -- Also clear the reverse preference
+    local target_file = preferences[pref_key]
+    local reverse_key = get_preference_key(target_file)
     preferences[pref_key] = nil
+    preferences[reverse_key] = nil
     save_preferences()
     local basename = get_basename(current_file)
-    vim.notify("Cleared preference for " .. basename, vim.log.levels.INFO)
+    vim.notify("Cleared preferences for " .. basename, vim.log.levels.INFO)
   else
     local basename = get_basename(current_file)
     vim.notify("No preference found for " .. basename, vim.log.levels.INFO)
@@ -237,6 +241,19 @@ local function get_preference_key(current_file)
   return directory .. "/" .. basename
 end
 
+-- Save bidirectional preference
+local function save_bidirectional_preference(file_a, file_b)
+  local key_a = get_preference_key(file_a)
+  local key_b = get_preference_key(file_b)
+  
+  -- Save preferences in both directions
+  preferences[key_a] = file_b
+  preferences[key_b] = file_a
+  save_preferences()
+  
+  vim.notify("Preference saved for " .. get_basename(file_a), vim.log.levels.INFO)
+end
+
 -- Main switch function
 function M.switch()
   local current_file = vim.fn.expand("%:p")
@@ -288,11 +305,9 @@ function M.switch()
   }, function(choice, idx)
     if choice and idx then
       local selected_file = matches[idx]
-      -- Remember the choice
-      preferences[pref_key] = selected_file
-      save_preferences()
+      -- Remember the choice bidirectionally
+      save_bidirectional_preference(current_file, selected_file)
       vim.cmd("edit " .. vim.fn.fnameescape(selected_file))
-      vim.notify("Preference saved for " .. get_basename(current_file), vim.log.levels.INFO)
     end
   end)
 end
@@ -302,4 +317,4 @@ vim.api.nvim_create_user_command('HeaderSourceClearPreference', clear_preference
   desc = 'Clear header/source preference for current file'
 })
 
-return M 
+return M

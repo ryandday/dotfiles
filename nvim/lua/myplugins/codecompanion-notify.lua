@@ -1,20 +1,25 @@
--- fidget.nvim integration for CodeCompanion
--- Lifted from: https://github.com/olimorris/codecompanion.nvim/discussions/813#discussioncomment-12031954
+-- CodeCompanion notification integration using vim.notify
+-- Inspired by: https://github.com/olimorris/codecompanion.nvim/discussions/813#discussioncomment-12031954
 
 local M = {}
 
 function M:init()
-  local group = vim.api.nvim_create_augroup("CodeCompanionFidgetHooks", { clear = true })
+  local group = vim.api.nvim_create_augroup("CodeCompanionNotifyHooks", { clear = true })
+
+  -- Keep track of active requests for better UX
+  local active_requests = {}
 
   vim.api.nvim_create_autocmd({ "User" }, {
     pattern = "CodeCompanionRequestStarted",
     group = group,
     callback = function(request)
       local client_name = M:get_client_name(request)
-      require("fidget").notify("Requesting assistance...", vim.log.levels.INFO, {
-        key = "codecompanion_" .. (request.data.bufnr or "default"),
-        annote = client_name,
-        group = "CodeCompanion",
+      local key = request.data.bufnr or "default"
+      active_requests[key] = true
+      
+      vim.notify("🤖 " .. client_name .. " • Requesting assistance...", vim.log.levels.INFO, {
+        title = "CodeCompanion",
+        timeout = false, -- Keep it visible until finished
       })
     end,
   })
@@ -23,12 +28,14 @@ function M:init()
     pattern = "CodeCompanionRequestFinished",
     group = group,
     callback = function(request)
-      local status_message = M:get_status_message(request, " Completed")
-      require("fidget").notify(status_message, vim.log.levels.INFO, {
-        key = "codecompanion_" .. (request.data.bufnr or "default"),
-        annote = M:get_client_name(request),
-        group = "CodeCompanion",
-        ttl = 3, -- Show completion message for 3 seconds
+      local client_name = M:get_client_name(request)
+      local key = request.data.bufnr or "default"
+      active_requests[key] = nil
+      
+      local status_message = M:get_status_message(request, "Completed")
+      vim.notify("✅ " .. client_name .. " • " .. status_message, vim.log.levels.INFO, {
+        title = "CodeCompanion",
+        timeout = 3000,
       })
     end,
   })
@@ -37,11 +44,13 @@ function M:init()
     pattern = "CodeCompanionRequestError",
     group = group,
     callback = function(request)
-      require("fidget").notify(" Error", vim.log.levels.ERROR, {
-        key = "codecompanion_" .. (request.data.bufnr or "default"),
-        annote = M:get_client_name(request),
-        group = "CodeCompanion",
-        ttl = 5, -- Show error message for 5 seconds
+      local client_name = M:get_client_name(request)
+      local key = request.data.bufnr or "default"
+      active_requests[key] = nil
+      
+      vim.notify("❌ " .. client_name .. " • Error occurred", vim.log.levels.ERROR, {
+        title = "CodeCompanion",
+        timeout = 5000,
       })
     end,
   })
@@ -50,11 +59,13 @@ function M:init()
     pattern = "CodeCompanionRequestCancelled",
     group = group,
     callback = function(request)
-      require("fidget").notify("󰜺 Cancelled", vim.log.levels.WARN, {
-        key = "codecompanion_" .. (request.data.bufnr or "default"),
-        annote = M:get_client_name(request),
-        group = "CodeCompanion",
-        ttl = 3, -- Show cancellation message for 3 seconds
+      local client_name = M:get_client_name(request)
+      local key = request.data.bufnr or "default"
+      active_requests[key] = nil
+      
+      vim.notify("🚫 " .. client_name .. " • Request cancelled", vim.log.levels.WARN, {
+        title = "CodeCompanion",
+        timeout = 3000,
       })
     end,
   })
@@ -102,9 +113,9 @@ end
 
 function M:get_status_message(request, default_message)
   if request.data and request.data.status == "success" then
-    return " Completed"
+    return "Completed"
   elseif request.data and request.data.status == "error" then
-    return " Error"
+    return "Error"
   else
     return default_message
   end

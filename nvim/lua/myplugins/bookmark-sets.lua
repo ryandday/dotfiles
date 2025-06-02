@@ -78,10 +78,6 @@ local function create_default_repo_data()
     set_order = { "default" }, -- Explicit ordering for sets
   }
 end
-    recent_sets = {},
-    set_order = { "default" }, -- Explicit ordering for sets
-  }
-end
 
 -- Save repository data to its file
 local function save_repo_data(repo_data, repo_id)

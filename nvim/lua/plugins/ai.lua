@@ -132,7 +132,13 @@ return {
             })
           end,
           copilot = function()
-            return require("codecompanion.adapters").extend("copilot", {})
+            return require("codecompanion.adapters").extend("copilot", {
+              schema = {
+                model = {
+                  default = "claude-3.7-sonnet", -- Latest Claude model available
+                },
+              },
+            })
           end,
           gemini = function()
             return require("codecompanion.adapters").extend("gemini", {

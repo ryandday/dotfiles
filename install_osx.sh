@@ -4,7 +4,7 @@
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
 # install packages
-brew install vim
+brew install neovim
 brew install tmux
 brew install fzf
 brew install rg
@@ -16,6 +16,7 @@ brew install xclip
 brew install luarocks
 brew install node
 brew install flock
+brew install pipx
 
 brew install eza        # Modern ls replacement with icons
 brew install bat        # Better cat with syntax highlighting  
@@ -28,6 +29,7 @@ brew install pkgconfig
 
 # Install global npm packages
 npm install -g mcp-hub@latest
+pipx install vectorcode
 
 # MAC gui instructions
 

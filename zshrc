@@ -37,6 +37,7 @@ export REVIEW_BASE=main # Used in git aliases
 
 if [[ $(uname -s) == "Darwin" ]]; then
   export PATH="/opt/homebrew/bin/:$PATH"
+  export PATH="$PATH:/Users/ryanday/.local/bin"
 fi
 
 # Restore tmux

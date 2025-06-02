@@ -48,6 +48,24 @@ return {
     },
   },
 
+  -- VectorCode - Code repository indexing for enhanced LLM context
+  {
+    "Davidyz/VectorCode",
+    cmd = { "VectorCode" },
+    config = function()
+      require("vectorcode").setup({
+        -- Default configuration
+        cmd = "vectorcode", -- Path to vectorcode CLI
+        debug = false,
+      })
+    end,
+    keys = {
+      { "<leader>vc", "<cmd>VectorCode<cr>", desc = "VectorCode Search" },
+      { "<leader>vi", "<cmd>VectorCode index<cr>", desc = "VectorCode Index Project" },
+      { "<leader>vq", "<cmd>VectorCode query<cr>", desc = "VectorCode Query" },
+    },
+  },
+
   -- GitHub Copilot (optional, for copilot provider)
   {
     "zbirenbaum/copilot.lua",

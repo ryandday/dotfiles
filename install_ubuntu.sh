@@ -6,7 +6,8 @@ sudo apt-get update --fix-missing
 
 # Install main packages
 sudo apt install zsh fzf ripgrep zsh-antidote lf kitty ccls plocate build-essential llvm clang-format clangd sccache xclip luarocks bat fd-find nodejs npm
-sudo apt install neovim flock imagemagick pkgconfig tmux
+sudo apt install neovim flock imagemagick pkgconfig tmux pipx
+
 # Modern CLI tools that might need special installation
 # btop (if not available via apt, install from snap or build from source)
 if ! command -v btop &> /dev/null; then
@@ -28,6 +29,7 @@ fi
 
 # Install global npm packages
 npm install -g mcp-hub@latest
+pipx install vectorcode
 
 # Change default shell to zsh
 chsh -s $(which zsh)

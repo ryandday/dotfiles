@@ -130,6 +130,26 @@ return {
                   requires_approval = true,
                 },
               },
+              ["git"] = {
+                callback = "codecompanion.tools.git",
+                description = "Assistant can work with Git repositories",
+                opts = {
+                  requires_approval = true,
+                },
+              },
+              ["lsp"] = {
+                callback = "codecompanion.tools.lsp",
+                description = "Assistant can access LSP information and diagnostics",
+              },
+              -- Optional: MCP (Model Context Protocol) integration
+              -- Uncomment and install mcphub.nvim for additional tools
+              -- ["mcp"] = {
+              --   callback = function() return require("mcphub.extensions.codecompanion") end,
+              --   description = "Call tools and resources from MCP Servers",
+              --   opts = {
+              --     requires_approval = true,
+              --   },
+              -- },
             },
           },
           inline = {
@@ -163,6 +183,26 @@ return {
                   requires_approval = true,
                 },
               },
+              ["git"] = {
+                callback = "codecompanion.tools.git",
+                description = "Assistant can work with Git repositories",
+                opts = {
+                  requires_approval = true,
+                },
+              },
+              ["lsp"] = {
+                callback = "codecompanion.tools.lsp",
+                description = "Assistant can access LSP information and diagnostics",
+              },
+              -- Optional: MCP (Model Context Protocol) integration
+              -- Uncomment and install mcphub.nvim for additional tools
+              -- ["mcp"] = {
+              --   callback = function() return require("mcphub.extensions.codecompanion") end,
+              --   description = "Call tools and resources from MCP Servers",
+              --   opts = {
+              --     requires_approval = true,
+              --   },
+              -- },
             },
           },
         },

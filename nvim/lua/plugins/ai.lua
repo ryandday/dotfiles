@@ -104,12 +104,14 @@ return {
         strategies = {
           chat = {
             adapter = provider,
+            system_prompt = "You are an AI coding assistant with access to powerful tools. When appropriate, automatically use:\n- @lsp for code analysis and diagnostics\n- @files for reading/writing files\n- @editor for code modifications\n- @git for version control operations\n- @cmd_runner for running commands\n- @web_search for research\n\nUse tools proactively when they would help answer questions or solve problems, even if not explicitly requested.",
             tools = {
               ["files"] = {
                 callback = "codecompanion.tools.files",
                 description = "Assistant can work with files on the filesystem",
                 opts = {
                   requires_approval = true,
+                  auto_submit = false,
                 },
               },
               ["cmd_runner"] = {
@@ -117,17 +119,23 @@ return {
                 description = "Assistant can run shell commands",
                 opts = {
                   requires_approval = true,
+                  auto_submit = false,
                 },
               },
               ["editor"] = {
                 callback = "codecompanion.tools.editor",
                 description = "Assistant can edit code in Neovim buffers",
+                opts = {
+                  requires_approval = false,
+                  auto_submit = true,
+                },
               },
               ["web_search"] = {
                 callback = "codecompanion.tools.web_search",
                 description = "Assistant can search the web for information",
                 opts = {
                   requires_approval = true,
+                  auto_submit = false,
                 },
               },
               ["git"] = {
@@ -135,11 +143,16 @@ return {
                 description = "Assistant can work with Git repositories",
                 opts = {
                   requires_approval = true,
+                  auto_submit = false,
                 },
               },
               ["lsp"] = {
                 callback = "codecompanion.tools.lsp",
                 description = "Assistant can access LSP information and diagnostics",
+                opts = {
+                  requires_approval = false,
+                  auto_submit = true,
+                },
               },
               -- Optional: MCP (Model Context Protocol) integration
               -- Uncomment and install mcphub.nvim for additional tools
@@ -289,6 +302,38 @@ return {
           use_default_actions = true, -- Use the default actions
           use_default_prompts = true, -- Use the default prompts
           use_default_tools = true, -- Enable default tools
+          auto_use_tools = true, -- Automatically suggest tools when appropriate
+          tool_choice = "auto", -- Let AI decide when to use tools
+        },
+        workflows = {
+          ["Fix Issues"] = {
+            strategy = "agent",
+            description = "Analyze and fix code issues using multiple tools",
+            prompts = {
+              {
+                role = "system", 
+                content = "You are a coding assistant. Use @lsp to find issues, @files to read code, @editor to make fixes, and @cmd_runner to test changes.",
+              },
+              {
+                role = "user",
+                content = "Please analyze this file for issues and fix them systematically.",
+              },
+            },
+          },
+          ["Project Setup"] = {
+            strategy = "agent", 
+            description = "Set up a new project with proper structure",
+            prompts = {
+              {
+                role = "system",
+                content = "You are a project setup assistant. Use @files to create structure, @git to initialize repo, and @cmd_runner to install dependencies.",
+              },
+              {
+                role = "user", 
+                content = "Set up a new project with the structure I describe.",
+              },
+            },
+          },
         },
         display = {
           action_palette = {

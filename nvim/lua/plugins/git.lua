@@ -8,9 +8,9 @@ return {
       { "<leader>gd", "<cmd>Gvdiffsplit<cr>", desc = "Git Diff Split" },
       { "<leader>gs", "<cmd>G<cr>", desc = "Git Status" },
       { "<leader>gp", "<cmd>G push<cr>", desc = "Git Push" },
-      { "<leader>gb", "<cmd>G blame<cr>", desc = "Git Blame" },
+      { "<leader>gP", "<cmd>G pull<cr>", desc = "Git Pull" },
+      { "<leader>gL", "<cmd>Octo pr list<cr>", desc = "List PRs" },
       { "<leader>gl", "<cmd>Gclog<cr>", desc = "Git Log" },
-      { "<leader>gP", "<cmd>Octo pr list<cr>", desc = "List PRs" },
       -- Worktree management
       { 
         "<leader>gw", 

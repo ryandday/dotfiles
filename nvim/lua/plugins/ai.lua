@@ -116,7 +116,10 @@ return {
     },
     config = function()
       -- Get provider from environment variable, default to claude
-      local provider = os.getenv("CODECOMPANION_PROVIDER") or "anthropic"
+      local provider = os.getenv("CODECOMPANION_PROVIDER") or "gemini"
+      
+      -- Enable auto-approval of tool usage
+      vim.g.codecompanion_auto_approve = true
       
       require("codecompanion").setup({
         strategies = {
@@ -132,24 +135,6 @@ return {
           },
         },
         adapters = {
-          anthropic = function()
-            return require("codecompanion.adapters").extend("anthropic", {
-              env = {
-                api_key = "ANTHROPIC_API_KEY",
-              },
-              schema = {
-                model = {
-                  default = "claude-3.5-sonnet-20241022",
-                },
-                max_tokens = {
-                  default = 8192,
-                },
-                temperature = {
-                  default = 0.1,
-                },
-              },
-            })
-          end,
           copilot = function()
             return require("codecompanion.adapters").extend("copilot", {
               schema = {
@@ -166,28 +151,10 @@ return {
               },
               schema = {
                 model = {
-                  default = "gemini-2.0-flash-exp",
+                  default = "gemini-2.5-flash",
                 },
                 max_tokens = {
                   default = 8192,
-                },
-                temperature = {
-                  default = 0.1,
-                },
-              },
-            })
-          end,
-          openai = function()
-            return require("codecompanion.adapters").extend("openai", {
-              env = {
-                api_key = "OPENAI_API_KEY",
-              },
-              schema = {
-                model = {
-                  default = "gpt-4o",
-                },
-                max_tokens = {
-                  default = 4096,
                 },
                 temperature = {
                   default = 0.1,
@@ -204,6 +171,9 @@ return {
           use_default_tools = true, -- Enable default tools
           auto_use_tools = true, -- Automatically suggest tools when appropriate
           tool_choice = "auto", -- Let AI decide when to use tools
+          auto_approve_edits = true, -- Auto-approve edits without confirmation
+          disable_diff = true, -- Disable diff mode for faster execution
+          auto_approve_tools = true, -- Auto-approve ALL tools including risky ones
         },
         workflows = {
           ["Fix Issues"] = {

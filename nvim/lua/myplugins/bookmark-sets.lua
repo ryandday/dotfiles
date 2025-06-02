@@ -12,10 +12,10 @@ local default_config = {
 -- Plugin state
 local config = {}
 
--- Convert repository path to safe filename
-local function repo_path_to_filename(repo_path)
-  -- Replace path separators and other unsafe characters with underscores
-  local safe_name = repo_path:gsub("[/\\:*?\"<>|]", "_")
+-- Convert repository identifier to safe filename
+local function repo_id_to_filename(repo_id)
+  -- Replace unsafe characters with underscores
+  local safe_name = repo_id:gsub("[/\\:*?\"<>|@#%s]", "_")
   -- Remove multiple consecutive underscores
   safe_name = safe_name:gsub("__+", "_")
   -- Remove leading/trailing underscores
@@ -24,8 +24,8 @@ local function repo_path_to_filename(repo_path)
   return safe_name .. ".json"
 end
 
--- Get the root directory of the current repository
-local function get_repo_root()
+-- Get the repository identifier (remote origin URL or fallback to directory name)
+local function get_repo_id()
   local current_file = vim.fn.expand("%:p")
   local current_dir = vim.fn.expand("%:p:h")
   
@@ -34,19 +34,32 @@ local function get_repo_root()
     current_dir = vim.fn.getcwd()
   end
   
-  -- Try to find git root
+  -- Try to find git root first
   local git_root = vim.fn.systemlist("cd " .. vim.fn.shellescape(current_dir) .. " && git rev-parse --show-toplevel 2>/dev/null")[1]
   if git_root and git_root ~= "" then
-    return git_root
+    -- Get the remote origin URL to use as the repository identifier
+    local remote_url = vim.fn.systemlist("cd " .. vim.fn.shellescape(git_root) .. " && git remote get-url origin 2>/dev/null")[1]
+    if remote_url and remote_url ~= "" then
+      -- Clean up the URL to use as identifier
+      -- Remove .git suffix if present
+      remote_url = remote_url:gsub("%.git$", "")
+      -- Extract meaningful part (remove protocol and normalize)
+      remote_url = remote_url:gsub("^https?://", ""):gsub("^git@", ""):gsub(":", "/")
+      return remote_url, git_root
+    end
+    
+    -- If no remote origin, use the directory name as fallback
+    return vim.fn.fnamemodify(git_root, ":t"), git_root
   end
   
   -- Fallback to current working directory if not in a git repo
-  return vim.fn.getcwd()
+  local cwd = vim.fn.getcwd()
+  return vim.fn.fnamemodify(cwd, ":t"), cwd
 end
 
 -- Get data file path for a repository
-local function get_repo_data_file(repo_root)
-  return config.data_dir .. "/" .. repo_path_to_filename(repo_root)
+local function get_repo_data_file(repo_id)
+  return config.data_dir .. "/" .. repo_id_to_filename(repo_id)
 end
 
 -- Create default repository data structure
@@ -65,9 +78,13 @@ local function create_default_repo_data()
     set_order = { "default" }, -- Explicit ordering for sets
   }
 end
+    recent_sets = {},
+    set_order = { "default" }, -- Explicit ordering for sets
+  }
+end
 
 -- Save repository data to its file
-local function save_repo_data(repo_data, repo_root)
+local function save_repo_data(repo_data, repo_id)
   if not config.auto_save then
     return
   end
@@ -77,7 +94,7 @@ local function save_repo_data(repo_data, repo_root)
     vim.fn.mkdir(config.data_dir, "p")
   end
   
-  local data_file = get_repo_data_file(repo_root)
+  local data_file = get_repo_data_file(repo_id)
   local file = io.open(data_file, "w")
   if file then
     file:write(vim.json.encode(repo_data))
@@ -88,8 +105,8 @@ local function save_repo_data(repo_data, repo_root)
 end
 
 -- Load repository data from its file
-local function load_repo_data(repo_root)
-  local data_file = get_repo_data_file(repo_root)
+local function load_repo_data(repo_id)
+  local data_file = get_repo_data_file(repo_id)
   local file = io.open(data_file, "r")
   
   if file then
@@ -195,9 +212,9 @@ end
 
 -- Main UI function
 function M.show_ui()
-  local repo_root = get_repo_root()
-  local repo_data = load_repo_data(repo_root)
-  local repo_key = vim.fn.fnamemodify(repo_root, ":t")
+  local repo_id, repo_root = get_repo_id()
+  local repo_data = load_repo_data(repo_id)
+  local repo_key = repo_id -- Use the repo_id as the display key
   
   -- State variables
   local current_view = "sets" -- "sets" or "bookmarks"
@@ -363,7 +380,7 @@ function M.show_ui()
       repo_data.set_order = set_names
       
       cursor_pos = target_pos
-      save_repo_data(repo_data, repo_root)
+      save_repo_data(repo_data, repo_id)
       
     else -- bookmarks view
       local set_data = repo_data.sets[current_set]
@@ -380,7 +397,7 @@ function M.show_ui()
       
       cursor_pos = target_pos
       set_data.modified = get_timestamp()
-      save_repo_data(repo_data, repo_root)
+      save_repo_data(repo_data, repo_id)
     end
   end
   
@@ -416,7 +433,7 @@ function M.show_ui()
         end
         
         update_recent_sets(repo_data, name)
-        save_repo_data(repo_data, repo_root)
+        save_repo_data(repo_data, repo_id)
         vim.notify("Set '" .. name .. "' created", vim.log.levels.INFO)
       end)
     else
@@ -463,7 +480,7 @@ function M.show_ui()
             end
           end
           
-          save_repo_data(repo_data, repo_root)
+          save_repo_data(repo_data, repo_id)
           cursor_pos = math.min(cursor_pos, #(repo_data.set_order or {}))
           vim.notify("Set '" .. item.name .. "' deleted", vim.log.levels.INFO)
         end
@@ -479,7 +496,7 @@ function M.show_ui()
           local set_data = repo_data.sets[current_set]
           table.remove(set_data.bookmarks, cursor_pos)
           set_data.modified = get_timestamp()
-          save_repo_data(repo_data, repo_root)
+          save_repo_data(repo_data, repo_id)
           cursor_pos = math.min(cursor_pos, #set_data.bookmarks)
           vim.notify("Bookmark '" .. display_name .. "' deleted", vim.log.levels.INFO)
         end
@@ -538,7 +555,7 @@ function M.show_ui()
           end
         end
         
-        save_repo_data(repo_data, repo_root)
+        save_repo_data(repo_data, repo_id)
         vim.notify("Set renamed to '" .. new_name .. "'", vim.log.levels.INFO)
       end)
     else
@@ -558,7 +575,7 @@ function M.show_ui()
         set_data.bookmarks[cursor_pos].nickname = new_name
         set_data.bookmarks[cursor_pos].modified = get_timestamp()
         set_data.modified = get_timestamp()
-        save_repo_data(repo_data, repo_root)
+        save_repo_data(repo_data, repo_id)
         
         local display = new_name or "nickname cleared"
         vim.notify("Bookmark nickname updated: " .. display, vim.log.levels.INFO)
@@ -572,7 +589,7 @@ function M.show_ui()
     local item = items[cursor_pos]
     repo_data.current_set = item.name
     update_recent_sets(repo_data, item.name)
-    save_repo_data(repo_data, repo_root)
+    save_repo_data(repo_data, repo_id)
     vim.notify("Switched to set '" .. item.name .. "'", vim.log.levels.INFO)
   end
   
@@ -586,7 +603,7 @@ function M.show_ui()
       end
       
       if total_removed > 0 then
-        save_repo_data(repo_data, repo_root)
+        save_repo_data(repo_data, repo_id)
         vim.notify(string.format("Cleaned up %d non-existent bookmarks across all sets", total_removed), vim.log.levels.INFO)
       else
         vim.notify("No cleanup needed - all bookmarks are valid", vim.log.levels.INFO)
@@ -595,7 +612,7 @@ function M.show_ui()
       -- Cleanup current set
       local removed = cleanup_bookmarks(repo_data, current_set)
       if removed > 0 then
-        save_repo_data(repo_data, repo_root)
+        save_repo_data(repo_data, repo_id)
         vim.notify(string.format("Cleaned up %d non-existent bookmarks from set '%s'", removed, current_set), vim.log.levels.INFO)
       else
         vim.notify("No cleanup needed - all bookmarks are valid", vim.log.levels.INFO)
@@ -656,7 +673,7 @@ function M.show_ui()
           set_data.bookmarks[index].nickname = new_nickname
           set_data.bookmarks[index].modified = get_timestamp()
           set_data.modified = get_timestamp()
-          save_repo_data(repo_data, repo_root)
+          save_repo_data(repo_data, repo_id)
           
           local new_display = (new_nickname or vim.fn.fnamemodify(current_file, ":t")) .. " [" .. format_path(current_file) .. ":" .. current_line .. "]"
           vim.notify("Replaced bookmark: " .. old_display .. " → " .. new_display, vim.log.levels.INFO)
@@ -710,7 +727,7 @@ function M.show_ui()
       return {}
     end
     
-    repo_data = load_repo_data(repo_root)
+    repo_data = load_repo_data(repo_id)
     local items = update_buffer()
     return items
   end
@@ -832,8 +849,8 @@ function M.add_bookmark()
     return
   end
   
-  local repo_root = get_repo_root()
-  local repo_data = load_repo_data(repo_root)
+  local repo_id, repo_root = get_repo_id()
+  local repo_data = load_repo_data(repo_id)
   
   vim.ui.input({
     prompt = "Bookmark nickname (optional): ",
@@ -852,7 +869,7 @@ function M.add_bookmark()
         bookmark.nickname = nickname
         bookmark.modified = get_timestamp()
         current_set.modified = get_timestamp()
-        save_repo_data(repo_data, repo_root)
+        save_repo_data(repo_data, repo_id)
         vim.notify("Updated bookmark in set '" .. repo_data.current_set .. "'", vim.log.levels.INFO)
         return
       end
@@ -869,7 +886,7 @@ function M.add_bookmark()
     
     table.insert(current_set.bookmarks, bookmark)
     current_set.modified = get_timestamp()
-    save_repo_data(repo_data, repo_root)
+    save_repo_data(repo_data, repo_id)
     
     local display_name = nickname or format_path(current_file) .. ":" .. current_line
     vim.notify("Added bookmark '" .. display_name .. "' to set '" .. repo_data.current_set .. "'", vim.log.levels.INFO)
@@ -878,8 +895,8 @@ end
 
 -- Jump to bookmark by index (for quick jump keys)
 function M.jump_to_bookmark(index)
-  local repo_root = get_repo_root()
-  local repo_data = load_repo_data(repo_root)
+  local repo_id, repo_root = get_repo_id()
+  local repo_data = load_repo_data(repo_id)
   local current_set = repo_data.sets[repo_data.current_set]
   
   if #current_set.bookmarks == 0 then
@@ -907,8 +924,8 @@ end
 
 -- Quick run function for current set
 function M.run_current_set()
-  local repo_root = get_repo_root()
-  local repo_data = load_repo_data(repo_root)
+  local repo_id, repo_root = get_repo_id()
+  local repo_data = load_repo_data(repo_id)
   
   if not repo_data.current_set then
     vim.notify("No current bookmark set selected. Use the UI to set one.", vim.log.levels.WARN)
@@ -976,8 +993,8 @@ function M.replace_bookmark()
     return
   end
   
-  local repo_root = get_repo_root()
-  local repo_data = load_repo_data(repo_root)
+  local repo_id, repo_root = get_repo_id()
+  local repo_data = load_repo_data(repo_id)
   local current_set = repo_data.sets[repo_data.current_set]
   
   if #current_set.bookmarks == 0 then
@@ -1021,7 +1038,7 @@ function M.replace_bookmark()
         current_set.bookmarks[index].nickname = new_nickname
         current_set.bookmarks[index].modified = get_timestamp()
         current_set.modified = get_timestamp()
-        save_repo_data(repo_data, repo_root)
+        save_repo_data(repo_data, repo_id)
         
         local new_display = (new_nickname or vim.fn.fnamemodify(current_file, ":t")) .. " [" .. format_path(current_file) .. ":" .. current_line .. "]"
         vim.notify("Replaced bookmark: " .. old_display .. " → " .. new_display, vim.log.levels.INFO)

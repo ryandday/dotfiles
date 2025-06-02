@@ -107,6 +107,7 @@ return {
       "hrsh7th/nvim-cmp", -- Optional: for enhanced completion
       "nvim-telescope/telescope.nvim", -- Optional: for enhanced picking
       "stevearc/dressing.nvim", -- Optional: for enhanced UI
+      "echasnovski/mini.diff",
       {
         "zbirenbaum/copilot.lua",
         cond = function()

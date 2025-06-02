@@ -104,12 +104,66 @@ return {
         strategies = {
           chat = {
             adapter = provider,
+            tools = {
+              ["files"] = {
+                callback = "codecompanion.tools.files",
+                description = "Assistant can work with files on the filesystem",
+                opts = {
+                  requires_approval = true,
+                },
+              },
+              ["cmd_runner"] = {
+                callback = "codecompanion.tools.cmd_runner",
+                description = "Assistant can run shell commands",
+                opts = {
+                  requires_approval = true,
+                },
+              },
+              ["editor"] = {
+                callback = "codecompanion.tools.editor",
+                description = "Assistant can edit code in Neovim buffers",
+              },
+              ["web_search"] = {
+                callback = "codecompanion.tools.web_search",
+                description = "Assistant can search the web for information",
+                opts = {
+                  requires_approval = true,
+                },
+              },
+            },
           },
           inline = {
             adapter = provider,
           },
           agent = {
             adapter = provider,
+            tools = {
+              ["files"] = {
+                callback = "codecompanion.tools.files",
+                description = "Assistant can work with files on the filesystem",
+                opts = {
+                  requires_approval = true,
+                },
+              },
+              ["cmd_runner"] = {
+                callback = "codecompanion.tools.cmd_runner",
+                description = "Assistant can run shell commands",
+                opts = {
+                  requires_approval = true,
+                },
+              },
+              ["editor"] = {
+                callback = "codecompanion.tools.editor",
+                description = "Assistant can edit code in Neovim buffers",
+              },
+              ["web_search"] = {
+                callback = "codecompanion.tools.web_search",
+                description = "Assistant can search the web for information",
+                opts = {
+                  requires_approval = true,
+                },
+              },
+            },
           },
         },
         adapters = {
@@ -128,6 +182,9 @@ return {
                 temperature = {
                   default = 0.1,
                 },
+                tools = {
+                  default = "required",
+                },
               },
             })
           end,
@@ -136,6 +193,9 @@ return {
               schema = {
                 model = {
                   default = "claude-3.7-sonnet", -- Latest Claude model available
+                },
+                tools = {
+                  default = "required",
                 },
               },
             })
@@ -155,6 +215,9 @@ return {
                 temperature = {
                   default = 0.1,
                 },
+                tools = {
+                  default = "required",
+                },
               },
             })
           end,
@@ -173,15 +236,19 @@ return {
                 temperature = {
                   default = 0.1,
                 },
+                tools = {
+                  default = "required",
+                },
               },
             })
           end,
         },
         opts = {
-          log_level = "ERROR", -- Set to "DEBUG" for troubleshooting
+          log_level = "DEBUG", -- Set to "DEBUG" for troubleshooting
           send_code = true, -- Send code context to the LLM
           use_default_actions = true, -- Use the default actions
           use_default_prompts = true, -- Use the default prompts
+          use_default_tools = true, -- Enable default tools
         },
         display = {
           action_palette = {

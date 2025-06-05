@@ -48,10 +48,22 @@ local function clear_preference_for_current_file()
   
   local pref_key = get_preference_key(current_file)
   if preferences[pref_key] then
+    -- Also clear the reverse preference
+    local target_file = preferences[pref_key]
+    local reverse_key = get_preference_key(target_file)
     preferences[pref_key] = nil
+    preferences[reverse_key] = nil
     save_preferences()
+    
     local basename = get_basename(current_file)
-    vim.notify("Cleared preference for " .. basename, vim.log.levels.INFO)
+    local directory = get_directory(current_file)
+    local remote_url = get_git_remote_url(directory)
+    
+    if remote_url then
+      vim.notify("Cleared preferences for " .. basename .. " (repo: " .. remote_url .. ")", vim.log.levels.INFO)
+    else
+      vim.notify("Cleared preferences for " .. basename, vim.log.levels.INFO)
+    end
   else
     local basename = get_basename(current_file)
     vim.notify("No preference found for " .. basename, vim.log.levels.INFO)
@@ -230,11 +242,66 @@ local function find_corresponding_files(current_file)
   return matches
 end
 
--- Get preference key for current file
+-- Get git remote URL for a directory
+local function get_git_remote_url(directory)
+  local project_root = find_project_root(directory)
+  if not project_root then
+    return nil
+  end
+  
+  -- Try to get the origin remote URL
+  local handle = io.popen("cd " .. vim.fn.shellescape(project_root) .. " && git remote get-url origin 2>/dev/null")
+  if not handle then
+    return nil
+  end
+  
+  local remote_url = handle:read("*line")
+  handle:close()
+  
+  if remote_url and remote_url ~= "" then
+    -- Normalize the URL (remove .git suffix, convert SSH to HTTPS format for consistency)
+    remote_url = remote_url:gsub("%.git$", "")
+    remote_url = remote_url:gsub("^git@([^:]+):", "https://%1/")
+    return remote_url
+  end
+  
+  return nil
+end
+
+-- Get preference key for current file (now based on git remote instead of directory)
 local function get_preference_key(current_file)
   local basename = get_basename(current_file)
   local directory = get_directory(current_file)
-  return directory .. "/" .. basename
+  local remote_url = get_git_remote_url(directory)
+  
+  if remote_url then
+    -- Use git remote URL as the key prefix
+    return remote_url .. "/" .. basename
+  else
+    -- Fallback to directory-based key if no git remote found
+    return directory .. "/" .. basename
+  end
+end
+
+-- Save bidirectional preference
+local function save_bidirectional_preference(file_a, file_b)
+  local key_a = get_preference_key(file_a)
+  local key_b = get_preference_key(file_b)
+  
+  -- Save preferences in both directions
+  preferences[key_a] = file_b
+  preferences[key_b] = file_a
+  save_preferences()
+  
+  local basename = get_basename(file_a)
+  local directory = get_directory(file_a)
+  local remote_url = get_git_remote_url(directory)
+  
+  if remote_url then
+    vim.notify("Preference saved for " .. basename .. " (repo: " .. remote_url .. ")", vim.log.levels.INFO)
+  else
+    vim.notify("Preference saved for " .. basename, vim.log.levels.INFO)
+  end
 end
 
 -- Main switch function
@@ -288,11 +355,9 @@ function M.switch()
   }, function(choice, idx)
     if choice and idx then
       local selected_file = matches[idx]
-      -- Remember the choice
-      preferences[pref_key] = selected_file
-      save_preferences()
+      -- Remember the choice bidirectionally
+      save_bidirectional_preference(current_file, selected_file)
       vim.cmd("edit " .. vim.fn.fnameescape(selected_file))
-      vim.notify("Preference saved for " .. get_basename(current_file), vim.log.levels.INFO)
     end
   end)
 end
@@ -302,4 +367,4 @@ vim.api.nvim_create_user_command('HeaderSourceClearPreference', clear_preference
   desc = 'Clear header/source preference for current file'
 })
 
-return M 
+return M

@@ -7,6 +7,22 @@ return {
     keys = {
       { "<leader>gd", "<cmd>Gvdiffsplit<cr>", desc = "Git Diff Split" },
       { "<leader>gs", "<cmd>G<cr>", desc = "Git Status" },
+      { "<leader>gc", "<cmd>G commit<cr>", desc = "Git Commit" },
+     { "<leader>ga", 
+       function()
+         local current_file = vim.fn.expand("%:p")
+         if current_file == "" then
+           vim.notify("No file is currently open", vim.log.levels.WARN)
+           return
+         end
+         
+         -- Execute git add for the current file
+         local cmd = "Git add " .. vim.fn.fnameescape(current_file)
+         vim.cmd(cmd)
+         vim.notify("Added " .. vim.fn.fnamemodify(current_file, ":t") .. " to git", vim.log.levels.INFO)
+       end,
+       desc = "Git Track/Add Current File" 
+     },
       { "<leader>gp", "<cmd>G push<cr>", desc = "Git Push" },
       { "<leader>gP", "<cmd>G pull<cr>", desc = "Git Pull" },
       { "<leader>gL", "<cmd>Octo pr list<cr>", desc = "List PRs" },

@@ -1497,7 +1497,7 @@ function M.setup(user_config)
   })
   
   -- Setup key mapping for auto-preview toggle
-  vim.keymap.set('n', '<leader>ga', function() M.toggle_auto_preview() end, {
+  vim.keymap.set('n', '<leader>gA', function() M.toggle_auto_preview() end, {
     desc = 'Toggle PR comment auto-preview',
     silent = true
   })

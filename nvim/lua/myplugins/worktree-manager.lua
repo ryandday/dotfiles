@@ -219,8 +219,8 @@ local function delete_worktree()
     return
   end
   
-  -- Delete the worktree
-  local cmd = string.format("git worktree remove %s", worktree.path)
+  -- Delete the worktree (with --force to handle submodules)
+  local cmd = string.format("git worktree remove --force %s", worktree.path)
   local result = vim.fn.system(cmd)
   
   if vim.v.shell_error == 0 then

@@ -407,7 +407,7 @@ function M.prompt_comment(file_info)
   -- Add helpful header
   local header_lines = {
     string.format("PR Comment for %s:%d", file_info.file, file_info.line),
-    "Write your comment below. Ctrl+S to post, Ctrl+X to cancel, <leader>gf to refocus.",
+    "Write your comment below. Ctrl+S to post, Ctrl+X to cancel, <leader>gF to refocus.",
     "",
     ""
   }
@@ -1509,7 +1509,7 @@ function M.setup(user_config)
   })
 
   -- Setup key mapping for PR file comment summary
-  vim.keymap.set('n', '<leader>gl', function() M.view_pr_file_summary() end, {
+  vim.keymap.set('n', '<leader>gS', function() M.view_pr_file_summary() end, {
     desc = 'View PR file comment summary',
     silent = true
   })
@@ -2103,7 +2103,7 @@ function M.reply_to_comment(original_comment)
   local header_lines = {
     string.format("Reply to @%s on %s:%d", original_comment.username, file_info.file, file_info.line),
     string.format("Original: %s", (original_comment.body or ""):gsub("\n", " "):sub(1, 60) .. "..."),
-    "Write your reply below. Ctrl+S to post, Ctrl+X to cancel, <leader>gf to refocus.",
+    "Write your reply below. Ctrl+S to post, Ctrl+X to cancel, <leader>gF to refocus.",
     "",
     ""
   }

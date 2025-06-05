@@ -40,14 +40,13 @@ return {
             if is_debug_terminal(buf) then
               local opts = { buffer = buf, silent = true }
               
-              -- Enhanced Ctrl+W that returns to insert mode
+              -- Terminal navigation keymaps
               vim.keymap.set('t', '<C-w>', '<C-\\><C-n><C-w>', opts)
               vim.keymap.set('t', '<C-w>h', '<C-\\><C-n><C-w>h', opts)
               vim.keymap.set('t', '<C-w>j', '<C-\\><C-n><C-w>j', opts)
               vim.keymap.set('t', '<C-w>k', '<C-\\><C-n><C-w>k', opts)
               vim.keymap.set('t', '<C-w>l', '<C-\\><C-n><C-w>l', opts)
               vim.keymap.set('t', '<C-w>w', '<C-\\><C-n><C-w>w', opts)
-              -- Use this one to switch back and forth between windows while debugging
               vim.keymap.set('t', '<C-w>p', '<C-\\><C-n><C-w>p', opts)
               vim.keymap.set('t', '<C-w>o', '<C-\\><C-n><C-w><C-w>', opts)
               

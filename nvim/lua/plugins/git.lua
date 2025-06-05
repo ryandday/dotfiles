@@ -213,13 +213,9 @@ return {
             { "n", "<leader>gv",  function() require("myplugins.pr-diffview").view_pr_comments() end, { desc = "View PR Comments (Current Line)" } },
             { "n", "<leader>gV",  function() require("myplugins.pr-diffview").view_all_file_comments() end, { desc = "View All PR Comments (Current File)" } },
             { "n", "<leader>gR",  function() require("myplugins.pr-diffview").refresh_comments() end, { desc = "Refresh PR Comments" } },
-            { "n", "<leader>gdi", function() require("myplugins.pr-diffview").debug_image_nvim() end, { desc = "Debug image.nvim" } },
-            { "n", "<leader>gdp", function() require("myplugins.pr-diffview").debug_profile_pics() end, { desc = "Debug Profile Pictures" } },
             { "n", "<leader>gx",  function() require("myplugins.pr-diffview").clear_pr_cache() end, { desc = "Clear PR Cache" } },
             { "n", "<leader>gX",  function() require("myplugins.pr-diffview").clear_all_caches() end, { desc = "Clear All Caches" } },
-            { "n", "<leader>gf",  function() require("myplugins.pr-diffview").refocus_comment_window() end, { desc = "Refocus Comment Window" } },
-            { "n", "<leader>gn",  function() require("myplugins.pr-diffview").debug_image_nvim() end, { desc = "Debug image.nvim Status" } },
-            { "n", "<leader>gz",  function() require("myplugins.pr-diffview").debug_profile_pics() end, { desc = "Debug Profile Pictures" } },
+            { "n", "<leader>gF",  function() require("myplugins.pr-diffview").refocus_comment_window() end, { desc = "Refocus Comment Window" } },
           },
           diff1 = {
             -- Mappings in single commit diff mode

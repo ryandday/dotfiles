@@ -3461,7 +3461,7 @@ function M.view_pr_file_summary()
       return nil -- Header area
     end
     
-    local file_line_offset = line_num - 4 - 1 -- Subtract totals section
+    local file_line_offset = line_num - 4 -- Remove the extra -1 that was causing the off-by-one error
     if file_line_offset > #files_with_comments * 2 then
       return nil -- Totals area
     end

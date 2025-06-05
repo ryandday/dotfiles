@@ -3490,7 +3490,7 @@ function M.view_pr_file_summary()
     local diffview_lib = require("diffview.lib")
     local view = diffview_lib.get_current_view()
     
-    if view then
+    if view and view.panel and view.panel.files and view.panel.files.items then
       -- Try to find and select the file in diffview
       local file_entry = nil
       for _, entry in ipairs(view.panel.files.items) do
@@ -3535,7 +3535,7 @@ function M.view_pr_file_summary()
         vim.notify(string.format("❌ File %s not found in diffview", file_path), vim.log.levels.ERROR)
       end
     else
-      vim.notify("❌ Not in a diffview session", vim.log.levels.ERROR)
+      vim.notify("❌ Not in a diffview session or diffview not fully loaded", vim.log.levels.ERROR)
     end
     
     -- Restore original window if navigation failed

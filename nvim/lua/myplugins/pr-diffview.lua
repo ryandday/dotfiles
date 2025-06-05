@@ -3230,36 +3230,10 @@ function M.view_pr_file_summary()
     return
   end
 
-  local summary_lines = {}
-  local highlight_rules = {}
-
-  local function add_highlight_rule(line_idx, group, start_byte, end_byte)
-    table.insert(highlight_rules, {
-      line_offset = line_idx,
-      group = group,
-      start_col = start_byte,
-      end_col = end_byte
-    })
-  end
-
-  -- Line 1: Header
-  local header_text = "╭─📊 PR File Comment Summary ─╮"
-  table.insert(summary_lines, header_text)
-  add_highlight_rule(#summary_lines - 1, "PRCommentHeader", 0, vim.fn.strlen(header_text))
-
-  -- Line 2: PR Info
-  local pr_info_text = string.format("├─ PR #%d: %d files", pr_number, #pr_files)
-  table.insert(summary_lines, pr_info_text)
-  add_highlight_rule(#summary_lines - 1, "PRCommentMeta", 0, vim.fn.strlen(pr_info_text))
-
-  -- Line 3: Border
-  local border_char = "│"
-  table.insert(summary_lines, border_char)
-  add_highlight_rule(#summary_lines - 1, "PRCommentBorder", 0, vim.fn.strlen(border_char))
-
+  -- Filter to only include files that actually have comments
+  local files_with_comments = {}
   local total_left_comments = 0
   local total_right_comments = 0
-  local files_with_comments_count = 0
 
   for _, file_path in ipairs(pr_files) do
     local file_comments_list = state.comments_cache[file_path] or {}
@@ -3274,25 +3248,76 @@ function M.view_pr_file_summary()
       end
     end
 
+    -- Only include files that have comments
     if left_count > 0 or right_count > 0 then
-      files_with_comments_count = files_with_comments_count + 1
+      table.insert(files_with_comments, {
+        path = file_path,
+        left_count = left_count,
+        right_count = right_count,
+        total_count = left_count + right_count
+      })
+      total_left_comments = total_left_comments + left_count
+      total_right_comments = total_right_comments + right_count
     end
-    total_left_comments = total_left_comments + left_count
-    total_right_comments = total_right_comments + right_count
+  end
 
+  if #files_with_comments == 0 then
+    vim.notify("📭 No files with comments found in the current PR.", vim.log.levels.INFO)
+    return
+  end
+
+  -- Sort files by total comment count (descending)
+  table.sort(files_with_comments, function(a, b)
+    return a.total_count > b.total_count
+  end)
+
+  local summary_lines = {}
+  local highlight_rules = {}
+
+  local function add_highlight_rule(line_idx, group, start_byte, end_byte)
+    table.insert(highlight_rules, {
+      line_offset = line_idx,
+      group = group,
+      start_col = start_byte,
+      end_col = end_byte
+    })
+  end
+
+  -- Line 1: Header
+  local header_text = "╭─📊 PR Files with Comments ─╮"
+  table.insert(summary_lines, header_text)
+  add_highlight_rule(#summary_lines - 1, "PRCommentHeader", 0, vim.fn.strlen(header_text))
+
+  -- Line 2: PR Info
+  local pr_info_text = string.format("├─ PR #%d: %d files with comments", pr_number, #files_with_comments)
+  table.insert(summary_lines, pr_info_text)
+  add_highlight_rule(#summary_lines - 1, "PRCommentMeta", 0, vim.fn.strlen(pr_info_text))
+
+  -- Line 3: Instructions
+  local instructions_text = "├─ Press Enter to view file, q to close"
+  table.insert(summary_lines, instructions_text)
+  add_highlight_rule(#summary_lines - 1, "PRCommentMeta", 0, vim.fn.strlen(instructions_text))
+
+  -- Line 4: Border
+  local border_char = "│"
+  table.insert(summary_lines, border_char)
+  add_highlight_rule(#summary_lines - 1, "PRCommentBorder", 0, vim.fn.strlen(border_char))
+
+  -- Add files with comments
+  for i, file_data in ipairs(files_with_comments) do
     -- File Path Line
     local line_idx_file = #summary_lines
-    local s_fp_prefix = "├─📄 "
+    local s_fp_prefix = string.format("├─%2d. ", i)
     local s_fp_suffix = ":"
-    local file_line_text = s_fp_prefix .. file_path .. s_fp_suffix
+    local file_line_text = s_fp_prefix .. file_data.path .. s_fp_suffix
     table.insert(summary_lines, file_line_text)
     local current_byte_pos_fp = 0
     add_highlight_rule(line_idx_file, "PRCommentBorder", current_byte_pos_fp, current_byte_pos_fp + vim.fn.strlen(s_fp_prefix:sub(1,1))) -- ├
     current_byte_pos_fp = current_byte_pos_fp + vim.fn.strlen(s_fp_prefix:sub(1,1))
-    add_highlight_rule(line_idx_file, "PRCommentHeader", current_byte_pos_fp, current_byte_pos_fp + vim.fn.strlen(s_fp_prefix:sub(2))) -- ─📄 
+    add_highlight_rule(line_idx_file, "PRCommentMeta", current_byte_pos_fp, current_byte_pos_fp + vim.fn.strlen(s_fp_prefix:sub(2))) -- ─XX.
     current_byte_pos_fp = current_byte_pos_fp + vim.fn.strlen(s_fp_prefix:sub(2))
-    add_highlight_rule(line_idx_file, "PRCommentHeader", current_byte_pos_fp, current_byte_pos_fp + vim.fn.strlen(file_path)) -- filepath
-    current_byte_pos_fp = current_byte_pos_fp + vim.fn.strlen(file_path)
+    add_highlight_rule(line_idx_file, "PRCommentHeader", current_byte_pos_fp, current_byte_pos_fp + vim.fn.strlen(file_data.path)) -- filepath
+    current_byte_pos_fp = current_byte_pos_fp + vim.fn.strlen(file_data.path)
     add_highlight_rule(line_idx_file, "PRCommentHeader", current_byte_pos_fp, current_byte_pos_fp + vim.fn.strlen(s_fp_suffix)) -- :
     
     -- Comment Count Line
@@ -3300,12 +3325,12 @@ function M.view_pr_file_summary()
     local s_cc_border1 = "│"
     local s_cc_pad1 = "      "
     local s_cc_left_label = "Left: "
-    local s_cc_left_val = string.format("%-3d", left_count)
+    local s_cc_left_val = string.format("%-3d", file_data.left_count)
     local s_cc_sep_pad = " "
     local s_cc_sep = "┊"
     local s_cc_pad2 = " "
     local s_cc_right_label = "Right: "
-    local s_cc_right_val = string.format("%-3d", right_count)
+    local s_cc_right_val = string.format("%-3d", file_data.right_count)
     local s_cc_suffix = " comments"
     
     local count_line_text = s_cc_border1 .. s_cc_pad1 .. s_cc_left_label .. s_cc_left_val .. s_cc_sep_pad .. s_cc_sep .. s_cc_pad2 .. s_cc_right_label .. s_cc_right_val .. s_cc_suffix
@@ -3356,7 +3381,7 @@ function M.view_pr_file_summary()
   local s_t2_prefix = "├─ Total Comments: "
   local s_t2_comments_val = tostring(total_comments_val)
   local s_t2_infix = " on "
-  local s_t2_files_val = tostring(files_with_comments_count)
+  local s_t2_files_val = tostring(#files_with_comments)
   local s_t2_suffix = " file(s)"
   local total_line_2 = s_t2_prefix .. s_t2_comments_val .. s_t2_infix .. s_t2_files_val .. s_t2_suffix
   table.insert(summary_lines, total_line_2)
@@ -3411,7 +3436,7 @@ function M.view_pr_file_summary()
 
   vim.api.nvim_win_set_option(win, 'wrap', false)
   vim.api.nvim_win_set_option(win, 'linebreak', false)
-  vim.api.nvim_win_set_option(win, 'cursorline', false)
+  vim.api.nvim_win_set_option(win, 'cursorline', true)
   vim.api.nvim_win_set_option(win, 'number', false)
   vim.api.nvim_win_set_option(win, 'relativenumber', false)
   vim.api.nvim_win_set_option(win, 'signcolumn', 'no')
@@ -3427,6 +3452,98 @@ function M.view_pr_file_summary()
   vim.api.nvim_buf_set_option(buf, 'modifiable', false)
   vim.api.nvim_buf_set_option(buf, 'readonly', true)
 
+  -- Function to get the file path from current line
+  local function get_file_from_line()
+    local line_num = vim.fn.line('.')
+    -- Find which file entry this line corresponds to
+    -- File entries start at line 5 (header=4 lines) and each file takes 2 lines
+    if line_num <= 4 then
+      return nil -- Header area
+    end
+    
+    local file_line_offset = line_num - 4 - 1 -- Subtract totals section
+    if file_line_offset > #files_with_comments * 2 then
+      return nil -- Totals area
+    end
+    
+    local file_index = math.ceil(file_line_offset / 2)
+    if file_index >= 1 and file_index <= #files_with_comments then
+      return files_with_comments[file_index].path
+    end
+    return nil
+  end
+
+  -- Function to navigate to selected file in diffview
+  local function navigate_to_file()
+    local file_path = get_file_from_line()
+    if not file_path then
+      vim.notify("No file selected", vim.log.levels.WARN)
+      return
+    end
+    
+    -- Close the summary window
+    if vim.api.nvim_win_is_valid(win) then
+      vim.api.nvim_win_close(win, true)
+    end
+    
+    -- Find the rightmost diffview window and switch to the file
+    local diffview_lib = require("diffview.lib")
+    local view = diffview_lib.get_current_view()
+    
+    if view then
+      -- Try to find and select the file in diffview
+      local file_entry = nil
+      for _, entry in ipairs(view.panel.files.items) do
+        if entry.path == file_path then
+          file_entry = entry
+          break
+        end
+      end
+      
+      if file_entry then
+        -- Use diffview's file selection action
+        local diffview_actions = require("diffview.actions")
+        view.panel:set_cur_item(file_entry)
+        diffview_actions.select_entry()
+        
+        -- Navigate to the rightmost window (diff view)
+        vim.defer_fn(function()
+          local wins = vim.api.nvim_list_wins()
+          local rightmost_win = nil
+          local rightmost_col = -1
+          
+          for _, w in ipairs(wins) do
+            if vim.api.nvim_win_is_valid(w) then
+              local config = vim.api.nvim_win_get_config(w)
+              if config.relative == "" then -- Only normal windows
+                local pos = vim.api.nvim_win_get_position(w)
+                if pos[2] > rightmost_col then
+                  rightmost_col = pos[2]
+                  rightmost_win = w
+                end
+              end
+            end
+          end
+          
+          if rightmost_win then
+            vim.api.nvim_set_current_win(rightmost_win)
+          end
+        end, 100)
+        
+        vim.notify(string.format("📄 Switched to %s", file_path), vim.log.levels.INFO)
+      else
+        vim.notify(string.format("❌ File %s not found in diffview", file_path), vim.log.levels.ERROR)
+      end
+    else
+      vim.notify("❌ Not in a diffview session", vim.log.levels.ERROR)
+    end
+    
+    -- Restore original window if navigation failed
+    if original_win and vim.api.nvim_win_is_valid(original_win) then
+      vim.api.nvim_set_current_win(original_win)
+    end
+  end
+
   local function close_summary_window()
     if vim.api.nvim_win_is_valid(win) then
       vim.api.nvim_win_close(win, true)
@@ -3436,6 +3553,12 @@ function M.view_pr_file_summary()
     end
   end
 
+  -- Set up keymaps
+  vim.api.nvim_buf_set_keymap(buf, 'n', '<CR>', '', {
+    callback = navigate_to_file,
+    noremap = true, silent = true, desc = 'Navigate to selected file'
+  })
+  
   vim.api.nvim_buf_set_keymap(buf, 'n', 'q', '', {
     callback = close_summary_window,
     noremap = true, silent = true, desc = 'Close PR File Summary'
@@ -3453,7 +3576,7 @@ function M.view_pr_file_summary()
   
   vim.api.nvim_set_current_win(win)
 
-  vim.notify("✅ PR File Comment Summary displayed.", vim.log.levels.INFO)
+  vim.notify(string.format("✅ Showing %d files with comments. Press Enter to navigate.", #files_with_comments), vim.log.levels.INFO)
 end
 
 -- Export functions for external use

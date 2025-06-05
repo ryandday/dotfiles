@@ -3486,56 +3486,80 @@ function M.view_pr_file_summary()
       vim.api.nvim_win_close(win, true)
     end
     
-    -- Find the rightmost diffview window and switch to the file
+    -- Check if we're in diffview
     local diffview_lib = require("diffview.lib")
     local view = diffview_lib.get_current_view()
     
-    if view and view.panel and view.panel.files and view.panel.files.items then
-      -- Try to find and select the file in diffview
-      local file_entry = nil
-      for _, entry in ipairs(view.panel.files.items) do
-        if entry.path == file_path then
-          file_entry = entry
-          break
-        end
-      end
-      
-      if file_entry then
-        -- Use diffview's file selection action
+    if view then
+      -- Try to open the file directly using diffview's file navigation
+      -- First, try to find it in the file tree and expand if needed
+      if view.panel and view.panel.files then
+        -- Refresh the file panel to ensure all files are loaded
         local diffview_actions = require("diffview.actions")
-        view.panel:set_cur_item(file_entry)
-        diffview_actions.select_entry()
         
-        -- Navigate to the rightmost window (diff view)
+        -- Try to open all folds first to make all files visible
+        pcall(diffview_actions.open_all_folds)
+        
+        -- Small delay to let the folds open
         vim.defer_fn(function()
-          local wins = vim.api.nvim_list_wins()
-          local rightmost_win = nil
-          local rightmost_col = -1
-          
-          for _, w in ipairs(wins) do
-            if vim.api.nvim_win_is_valid(w) then
-              local config = vim.api.nvim_win_get_config(w)
-              if config.relative == "" then -- Only normal windows
-                local pos = vim.api.nvim_win_get_position(w)
-                if pos[2] > rightmost_col then
-                  rightmost_col = pos[2]
-                  rightmost_win = w
-                end
+          local file_entry = nil
+          -- Look for the file in the items after expanding
+          if view.panel.files.items then
+            for _, entry in ipairs(view.panel.files.items) do
+              if entry.path == file_path then
+                file_entry = entry
+                break
               end
             end
           end
           
-          if rightmost_win then
-            vim.api.nvim_set_current_win(rightmost_win)
+          if file_entry then
+            -- Use diffview's file selection action
+            view.panel:set_cur_item(file_entry)
+            diffview_actions.select_entry()
+            
+            -- Navigate to the rightmost window (diff view)
+            vim.defer_fn(function()
+              local wins = vim.api.nvim_list_wins()
+              local rightmost_win = nil
+              local rightmost_col = -1
+              
+              for _, w in ipairs(wins) do
+                if vim.api.nvim_win_is_valid(w) then
+                  local config = vim.api.nvim_win_get_config(w)
+                  if config.relative == "" then -- Only normal windows
+                    local pos = vim.api.nvim_win_get_position(w)
+                    if pos[2] > rightmost_col then
+                      rightmost_col = pos[2]
+                      rightmost_win = w
+                    end
+                  end
+                end
+              end
+              
+              if rightmost_win then
+                vim.api.nvim_set_current_win(rightmost_win)
+              end
+            end, 100)
+            
+            vim.notify(string.format("📄 Switched to %s", file_path), vim.log.levels.INFO)
+          else
+            -- If file not found after expanding, try a different approach
+            -- Navigate to file panel first and let user find it manually
+            if view.panel then
+              local diffview_actions = require("diffview.actions")
+              diffview_actions.focus_files()
+              vim.notify(string.format("📁 File %s not immediately visible. Opened file panel for manual navigation.", file_path), vim.log.levels.WARN)
+            else
+              vim.notify(string.format("❌ File %s not found in diffview", file_path), vim.log.levels.ERROR)
+            end
           end
-        end, 100)
-        
-        vim.notify(string.format("📄 Switched to %s", file_path), vim.log.levels.INFO)
+        end, 150)
       else
-        vim.notify(string.format("❌ File %s not found in diffview", file_path), vim.log.levels.ERROR)
+        vim.notify("❌ Diffview panel not available", vim.log.levels.ERROR)
       end
     else
-      vim.notify("❌ Not in a diffview session or diffview not fully loaded", vim.log.levels.ERROR)
+      vim.notify("❌ Not in a diffview session", vim.log.levels.ERROR)
     end
     
     -- Restore original window if navigation failed

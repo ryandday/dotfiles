@@ -3473,6 +3473,49 @@ function M.view_pr_file_summary()
     return nil
   end
 
+  -- Function to jump to specific file entry
+  local function jump_to_file_entry(file_index)
+    if file_index < 1 or file_index > #files_with_comments then
+      return
+    end
+    
+    -- Each file entry starts at line 5 + (index-1)*2
+    local target_line = 4 + ((file_index - 1) * 2) + 1
+    vim.api.nvim_win_set_cursor(win, {target_line, 0})
+  end
+
+  -- Function to jump to next file entry
+  local function next_file_entry()
+    local current_line = vim.fn.line('.')
+    if current_line <= 4 then
+      -- In header, jump to first file
+      jump_to_file_entry(1)
+      return
+    end
+    
+    local file_line_offset = current_line - 4
+    local current_file_index = math.ceil(file_line_offset / 2)
+    
+    if current_file_index < #files_with_comments then
+      jump_to_file_entry(current_file_index + 1)
+    end
+  end
+
+  -- Function to jump to previous file entry
+  local function prev_file_entry()
+    local current_line = vim.fn.line('.')
+    if current_line <= 4 then
+      return -- Stay in header
+    end
+    
+    local file_line_offset = current_line - 4
+    local current_file_index = math.ceil(file_line_offset / 2)
+    
+    if current_file_index > 1 then
+      jump_to_file_entry(current_file_index - 1)
+    end
+  end
+
   -- Function to navigate to selected file in diffview
   local function navigate_to_file()
     local file_path = get_file_from_line()
@@ -3571,6 +3614,16 @@ function M.view_pr_file_summary()
     noremap = true, silent = true, desc = 'Navigate to selected file'
   })
   
+  vim.api.nvim_buf_set_keymap(buf, 'n', '<Tab>', '', {
+    callback = next_file_entry,
+    noremap = true, silent = true, desc = 'Jump to next file entry'
+  })
+  
+  vim.api.nvim_buf_set_keymap(buf, 'n', '<S-Tab>', '', {
+    callback = prev_file_entry,
+    noremap = true, silent = true, desc = 'Jump to previous file entry'
+  })
+  
   vim.api.nvim_buf_set_keymap(buf, 'n', 'q', '', {
     callback = close_summary_window,
     noremap = true, silent = true, desc = 'Close PR File Summary'
@@ -3587,6 +3640,11 @@ function M.view_pr_file_summary()
   })
   
   vim.api.nvim_set_current_win(win)
+
+  -- Set initial cursor position to first file entry (line 5)
+  if #files_with_comments > 0 then
+    jump_to_file_entry(1)
+  end
 
   vim.notify(string.format("✅ Showing %d files with comments. Press Enter to navigate.", #files_with_comments), vim.log.levels.INFO)
 end

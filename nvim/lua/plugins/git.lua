@@ -24,6 +24,7 @@ return {
        desc = "Git Track/Add Current File" 
      },
       { "<leader>gp", "<cmd>G push<cr>", desc = "Git Push" },
+      { "<leader>gb", "<cmd>G blame<cr>", desc = "Git Push" },
       { "<leader>gP", "<cmd>G pull<cr>", desc = "Git Pull" },
       { "<leader>gL", "<cmd>Octo pr list<cr>", desc = "List PRs" },
       { "<leader>gl", "<cmd>Gclog<cr>", desc = "Git Log" },

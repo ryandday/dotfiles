@@ -88,7 +88,6 @@ return {
     version = "*",
     keys = {
       { "<leader>tt", "<cmd>ToggleTerm direction=float<cr>", desc = "Toggle Terminal (Float)" },
-      { "<leader>tp", "<cmd>ToggleTerm direction=horizontal<cr>", desc = "Toggle Terminal (Horizontal)" },
       { "<leader>tv", function() _G.terminal_funcs.list_terminals() end, desc = "List Terminals" },
       { "<C-\\>", function() _G.terminal_funcs.toggle_current_terminal() end, desc = "Toggle Current Terminal", mode = {"n", "t"} },
     },

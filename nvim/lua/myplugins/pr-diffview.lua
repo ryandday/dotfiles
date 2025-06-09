@@ -35,7 +35,7 @@ M.config = {
   
   -- Auto-preview settings
   auto_preview = {
-    enable = false,  -- Toggle for auto-showing comments when cursor moves to commented lines
+    enable = true,  -- Enable auto-preview by default - comments will show automatically when cursor moves to commented lines
     delay_ms = 150,  -- Delay before showing/hiding to avoid flicker
   }
 }

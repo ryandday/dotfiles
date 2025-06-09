@@ -2199,7 +2199,7 @@ function M.setup(user_config)
   end, { desc = "Refresh dashboard content" })
   
   -- Set up keymaps
-  vim.keymap.set("n", "<leader>dd", M.switch_to_dashboard, { 
+  vim.keymap.set("n", "<leader>db", M.switch_to_dashboard, { 
     noremap = true, 
     silent = true, 
     desc = "Open repository dashboard" 

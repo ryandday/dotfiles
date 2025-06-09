@@ -12,7 +12,7 @@ return {
       { "<S-F11>", "<cmd>TFinish<cr>", desc = "Step Out" },
       { "<F9>", "<cmd>TToggleBreak<cr>", desc = "Toggle Breakpoint" },
       { "<leader>dr", desc = "Run debug command (UI)" },
-      { "<leader>dm", desc = "Manage debug commands (UI)" },
+      { "<leader>dd", desc = "Manage debug commands (UI)" },
       { "<leader>da", desc = "Add debug command (UI)" },
     },
     config = function()

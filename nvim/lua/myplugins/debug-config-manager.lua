@@ -551,7 +551,7 @@ function M.setup()
   
   -- Add keymap for quick debug command runner
   vim.keymap.set("n", "<leader>dr", M.run_command_ui, { desc = "Run debug command (UI)" })
-  vim.keymap.set("n", "<leader>dm", M.manage_commands_ui, { desc = "Manage debug commands (UI)" })
+  vim.keymap.set("n", "<leader>dd", M.manage_commands_ui, { desc = "Manage debug commands (UI)" })
   vim.keymap.set("n", "<leader>da", M.add_command_ui, { desc = "Add debug command (UI)" })
 end
 

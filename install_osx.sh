@@ -29,6 +29,7 @@ brew install pkgconfig
 
 # Install global npm packages
 npm install -g mcp-hub@latest
+npm install -g repomix
 pipx install vectorcode
 
 # MAC gui instructions

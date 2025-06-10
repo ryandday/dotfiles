@@ -82,6 +82,10 @@ alias gb='git checkout $(git branch | fzf)'
 alias gbr='git checkout --track $(git branch -r | fzf)'
 alias gcha='git log --pretty=format: --name-only | sort | uniq -c | sort -rg | head -15'
 
+# Repomix - Pack repository for AI tools
+alias repopack='repomix . --style xml --output repomix-output.xml'
+alias repopackmd='repomix . --style markdown --output repomix-output.md'
+
 # Enhanced ls with icons (if you have exa/eza installed)
 if command -v eza &> /dev/null; then
     alias ls='eza --icons --group-directories-first'

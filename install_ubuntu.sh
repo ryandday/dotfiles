@@ -29,6 +29,7 @@ fi
 
 # Install global npm packages
 npm install -g mcp-hub@latest
+npm install -g repomix
 pipx install vectorcode
 
 # Change default shell to zsh

@@ -103,11 +103,6 @@ if command -v bat &> /dev/null; then
     alias bcat='bat'  # Keep original bat command available
 fi
 
-# Modern find replacement  
-if command -v fd &> /dev/null; then
-    alias find='fd'
-    alias oldfind='command find'  # Keep original find available
-fi
 
 # Better top replacement
 if command -v btop &> /dev/null; then

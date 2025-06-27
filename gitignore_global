@@ -30,3 +30,6 @@ Temporary Items
 .cache/
 # Build and configuration files
 compile_commands.json
+# AI files
+**/CLAUDE.local.md
+.claude/settings.local.json

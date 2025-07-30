@@ -179,10 +179,11 @@ return {
           hidden = true,  -- Show hidden files (those starting with .)
           follow = true,  -- Follow symlinks
           no_ignore = false,  -- Still respect .gitignore
+          file_ignore_patterns = { "^.git/" },  -- Exclude .git directory
         },
         live_grep = {
           additional_args = function()
-            return {"--hidden"}  -- Include hidden files in grep
+            return {"--hidden", "--glob", "!.git/*"}  -- Include hidden files but exclude .git
           end,
         },
         -- Git branches picker with worktree creation support

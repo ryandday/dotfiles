@@ -174,6 +174,17 @@ return {
         },
       },
       pickers = {
+        -- Find files including hidden files and directories
+        find_files = {
+          hidden = true,  -- Show hidden files (those starting with .)
+          follow = true,  -- Follow symlinks
+          no_ignore = false,  -- Still respect .gitignore
+        },
+        live_grep = {
+          additional_args = function()
+            return {"--hidden"}  -- Include hidden files in grep
+          end,
+        },
         -- Git branches picker with worktree creation support
         -- Press Ctrl+W on any branch to create a worktree at ~/repos/<reponame>_<branchname>
         -- Special characters in branch names are replaced with underscores

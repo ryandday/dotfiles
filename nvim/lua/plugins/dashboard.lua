@@ -10,7 +10,7 @@ return {
       
       dashboard.setup({
         -- Auto-open dashboard when starting nvim (set to true to show on startup)
-        auto_open = true,
+        auto_open = false,
         
         -- Number of items to show in each section
         git_max_commits = 5,

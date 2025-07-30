@@ -881,3 +881,54 @@ aws_stack_events() {
     --query "StackEvents[0:$limit].{Timestamp:Timestamp,LogicalId:LogicalResourceId,Status:ResourceStatus,Reason:ResourceStatusReason}" \
     --output table
 }
+
+# Git worktree wrapper for handling submodules
+git() {
+  # If not a worktree command, use regular git
+  if [[ "$1" != "worktree" ]]; then
+    command git "$@"
+    return
+  fi
+
+  # Handle worktree add
+  if [[ "$2" == "add" ]]; then
+    # Get the worktree path from arguments (last argument)
+    local worktree_path="${@: -1}"
+    
+    # Run the original command and wait for it to complete
+    command git "$@"
+    local git_status=$?
+    
+    # If command succeeded and submodules exist, symlink them
+    if [[ $git_status -eq 0 ]] && [[ -f .gitmodules ]]; then
+      # Wait a moment for git to finish creating directories
+      sleep 0.5
+      
+      echo "Setting up submodule symlinks..."
+      
+      # Get all submodule paths
+      while IFS= read -r submodule_path; do
+        [[ -z "$submodule_path" ]] && continue
+        
+        # Remove empty directory and create symlink
+        if [[ -d "$submodule_path" ]] && [[ -d "$worktree_path/$submodule_path" ]]; then
+          rm -rf "$worktree_path/$submodule_path"
+          ln -s "$PWD/$submodule_path" "$worktree_path/$submodule_path"
+          echo "Linked submodule: $submodule_path"
+        fi
+      done < <(command git config --file .gitmodules --get-regexp path | awk '{print $2}')
+    fi
+    
+    return $git_status
+  
+  # Handle worktree remove
+  elif [[ "$2" == "remove" ]]; then
+    # Always use --force for remove
+    shift 2
+    command git worktree remove --force "$@"
+  
+  # Other worktree commands pass through
+  else
+    command git "$@"
+  fi
+}

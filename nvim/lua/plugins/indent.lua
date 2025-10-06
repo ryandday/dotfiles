@@ -14,7 +14,7 @@ return {
         filetypes = {
           "help",
           "alpha",
-          "dashboard",
+          -- "dashboard", -- Dashboard disabled
           "neo-tree",
           "Trouble",
           "lazy",

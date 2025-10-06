@@ -4,6 +4,18 @@ return {
     "nvim-tree/nvim-tree.lua",
     dependencies = { "nvim-tree/nvim-web-devicons" },
     cmd = { "NvimTreeToggle", "NvimTreeFindFile", "NvimTreeOpen" },
+    init = function()
+      -- Auto-open nvim-tree when opening a directory
+      vim.api.nvim_create_autocmd({ "VimEnter" }, {
+        callback = function(data)
+          local directory = vim.fn.isdirectory(data.file) == 1
+          if directory then
+            vim.cmd.cd(data.file)
+            require("nvim-tree.api").tree.open()
+          end
+        end,
+      })
+    end,
     keys = {
       { "<leader>e", "<cmd>NvimTreeToggle<cr>", desc = "Toggle File Explorer" },
       { "<leader>o", function()

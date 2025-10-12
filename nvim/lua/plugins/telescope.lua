@@ -4,6 +4,18 @@ return {
     "nvim-tree/nvim-tree.lua",
     dependencies = { "nvim-tree/nvim-web-devicons" },
     cmd = { "NvimTreeToggle", "NvimTreeFindFile", "NvimTreeOpen" },
+    init = function()
+      -- Auto-open nvim-tree when opening a directory
+      vim.api.nvim_create_autocmd({ "VimEnter" }, {
+        callback = function(data)
+          local directory = vim.fn.isdirectory(data.file) == 1
+          if directory then
+            vim.cmd.cd(data.file)
+            require("nvim-tree.api").tree.open()
+          end
+        end,
+      })
+    end,
     keys = {
       { "<leader>e", "<cmd>NvimTreeToggle<cr>", desc = "Toggle File Explorer" },
       { "<leader>o", function()
@@ -174,6 +186,18 @@ return {
         },
       },
       pickers = {
+        -- Find files including hidden files and directories
+        find_files = {
+          hidden = true,  -- Show hidden files (those starting with .)
+          follow = true,  -- Follow symlinks
+          no_ignore = false,  -- Still respect .gitignore
+          file_ignore_patterns = { "^.git/" },  -- Exclude .git directory
+        },
+        live_grep = {
+          additional_args = function()
+            return {"--hidden", "--glob", "!.git/*"}  -- Include hidden files but exclude .git
+          end,
+        },
         -- Git branches picker with worktree creation support
         -- Press Ctrl+W on any branch to create a worktree at ~/repos/<reponame>_<branchname>
         -- Special characters in branch names are replaced with underscores

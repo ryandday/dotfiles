@@ -19,7 +19,7 @@ return {
         { "<leader>t", group = "Tabs & Terminal" },
         { "<leader>x", group = "Diagnostics" },
         { "<leader>y", group = "Yank" },
-        { "<leader>d", group = "Debug/Dashboard" },
+        { "<leader>d", group = "Debug" }, -- Dashboard disabled
         { "<leader>h", group = "Help" },
         { "]", group = "Next" },
         { "[", group = "Previous" },

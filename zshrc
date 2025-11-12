@@ -34,6 +34,7 @@ export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 export FZF_DEFAULT_OPTS='--height 100% --layout=reverse --border --ansi'
 
 export REVIEW_BASE=main # Used in git aliases
+export DOTNET_CLI_TELEMETRY_OPTOUT=true
 
 if [[ $(uname -s) == "Darwin" ]]; then
   export PATH="/opt/homebrew/bin/:$PATH"
